@@ -1,13 +1,28 @@
-# Build stage
-FROM eclipse-temurin:17-jdk AS build
-WORKDIR /app
-COPY . .
+FROM eclipse-temurin:17-jdk-alpine AS build
 
-RUN chmod +x ./mvnw
+WORKDIR /app
+
+# Copy Maven wrapper và file cấu hình
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Cấp quyền cho mvnw
+RUN chmod +x mvnw
+
+# Copy toàn bộ source code
+COPY src ./src
+
+# Build package jar
 RUN ./mvnw clean package -DskipTests
 
-# Run stage
-FROM eclipse-temurin:17-jre
+# Stage chạy app
+FROM eclipse-temurin:17-jre-alpine
+
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copy jar từ stage build
+COPY --from=build /app/target/RoomieHub-0.0.1-SNAPSHOT.jar app.jar
+
+# Chạy jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
