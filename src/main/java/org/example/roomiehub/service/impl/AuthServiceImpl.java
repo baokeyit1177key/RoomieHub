@@ -11,11 +11,8 @@ import org.example.roomiehub.service.AuthService;
 import org.example.roomiehub.util.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,11 +38,8 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                user.getEmail(), user.getPassword(), List.of()
-        );
-
-        String token = jwtUtil.generateToken(userDetails);
+        // Sinh token dựa trên email user (username)
+        String token = jwtUtil.generateToken(user.getEmail());
         return new AuthResponse(token);
     }
 
@@ -62,12 +56,8 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() ->
                 new AuthException("User not found"));
 
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                user.getEmail(), user.getPassword(), List.of()
-        );
-
-        String token = jwtUtil.generateToken(userDetails);
+        // Sinh token dựa trên email user (username)
+        String token = jwtUtil.generateToken(user.getEmail());
         return new AuthResponse(token);
     }
 }
-
