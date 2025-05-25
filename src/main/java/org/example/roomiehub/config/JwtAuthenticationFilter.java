@@ -60,7 +60,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         public OpenAPI customOpenAPI() {
             return new OpenAPI()
                     .servers(List.of(
-                        new Server().url("https://roomiehub-production.up.railway.app")
+                        new Server().url("https://roomiehub-production.up.railway.app"),
+                        new Server().url("http://localhost:8080") // thêm localhost nếu cần
                     ));
         }
     }
@@ -74,9 +75,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOrigins("*")  // hoặc chỉ định domain cụ thể
+                            .allowedOrigins(
+                                "http://localhost:8080", // local test
+                                "https://roomiehub-production.up.railway.app" // production
+                            )
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                            .allowedHeaders("*");
+                            .allowedHeaders("*")
+                            .allowCredentials(true);
                 }
             };
         }

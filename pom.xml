@@ -38,6 +38,12 @@
     <dependencies>
 
         <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+
+
+        <dependency>
     <groupId>org.projectlombok</groupId>
     <artifactId>lombok</artifactId>
     <version>1.18.28</version>  <!-- Phiên bản mới nhất, thay đổi theo bạn -->

@@ -30,10 +30,12 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/api/auth/**",
                             "/swagger-ui/**",
+                            "/api/test-chatgpt",
                             "/v3/api-docs/**",
                             "/swagger-resources/**",
                             "/webjars/**",
-                            "/v2/api-docs/**"
+                            "/v2/api-docs/**",
+                            "/api/surveys/**"    // cho phép không cần auth
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
