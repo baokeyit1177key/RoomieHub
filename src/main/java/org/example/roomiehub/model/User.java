@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.roomiehub.Enum.Enums;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -24,6 +28,6 @@ public class User {
 
     private String password;
 
-    private String role;
+    private List<Enums.Role> role;
 }
 

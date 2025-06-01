@@ -1,6 +1,7 @@
 package org.example.roomiehub.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.example.roomiehub.Enum.Enums;
 import org.example.roomiehub.dto.request.LoginRequest;
 import org.example.roomiehub.dto.request.RegisterRequest;
 import org.example.roomiehub.dto.response.AuthResponse;
@@ -14,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -26,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
+            // Dùng lỗi 409 - Conflict (xử lý ở GlobalExceptionHandler)
             throw new AuthException("Email already registered");
         }
 
@@ -33,15 +37,15 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role("ROLE_USER")
+                .role(List.of(Enums.Role.USER))
                 .build();
 
         userRepository.save(user);
 
-        // Sinh token dựa trên email user (username)
         String token = jwtUtil.generateToken(user.getEmail());
         return new AuthResponse(token);
     }
+
 
     @Override
     public AuthResponse login(LoginRequest request) {

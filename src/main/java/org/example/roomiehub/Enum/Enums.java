@@ -1,6 +1,14 @@
 package org.example.roomiehub.Enum;
 
+import lombok.RequiredArgsConstructor;
+
 public class Enums {
+
+    @RequiredArgsConstructor
+    public enum Role {
+        USER,
+        ADMIN;
+    }
 
     public enum Gender {
         MALE, FEMALE, OTHER
