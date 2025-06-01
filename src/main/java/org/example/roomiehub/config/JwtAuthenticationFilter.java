@@ -32,6 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -40,7 +46,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
+        String email = null;
+
+        try {
+            email = jwtUtil.extractEmail(token);
+        } catch (Exception e) {
+            // Log lỗi decode token (token không hợp lệ)
+            logger.error("JWT token extraction failed", e);
+            // Có thể trả lỗi 401 luôn, hoặc bỏ qua (tuỳ thiết kế)
+            // Ví dụ trả lỗi:
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+            return;
+        }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -48,11 +65,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                // Token không hợp lệ, có thể trả lỗi 401
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token validation failed");
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 
     @Configuration
     public static class OpenApiConfig {
@@ -75,10 +97,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOrigins(
-                                "http://localhost:8080", // local test
-                                "https://roomiehub-production.up.railway.app" // production
-                            )
+                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app")
+
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
                             .allowCredentials(true);
