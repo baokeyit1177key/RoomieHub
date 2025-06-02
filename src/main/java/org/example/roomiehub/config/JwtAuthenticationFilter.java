@@ -32,8 +32,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
         String path = request.getRequestURI();
-        if (path.startsWith("/api/auth/")) {
+
+        // Cho phép các đường dẫn công khai (auth, swagger, docs, v.v.)
+        if (path.startsWith("/api/auth/") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars") ||
+                path.equals("/swagger-ui.html") ||
+                path.equals("/") ||
+                path.startsWith("/api/test-chatgpt")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -41,20 +51,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
             return;
         }
 
         String token = authHeader.substring(7);
-        String email = null;
+        String email;
 
         try {
             email = jwtUtil.extractEmail(token);
         } catch (Exception e) {
-            // Log lỗi decode token (token không hợp lệ)
-            logger.error("JWT token extraction failed", e);
-            // Có thể trả lỗi 401 luôn, hoặc bỏ qua (tuỳ thiết kế)
-            // Ví dụ trả lỗi:
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
             return;
         }
@@ -66,7 +72,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                // Token không hợp lệ, có thể trả lỗi 401
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token validation failed");
                 return;
             }
@@ -76,14 +81,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
+
     @Configuration
     public static class OpenApiConfig {
         @Bean
         public OpenAPI customOpenAPI() {
+            final String securitySchemeName = "bearerAuth";
+
             return new OpenAPI()
+                    .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement().addList(securitySchemeName))
+                    .components(new io.swagger.v3.oas.models.Components()
+                            .addSecuritySchemes(securitySchemeName,
+                                    new io.swagger.v3.oas.models.security.SecurityScheme()
+                                            .name(securitySchemeName)
+                                            .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP)
+                                            .scheme("bearer")
+                                            .bearerFormat("JWT")
+                            ))
                     .servers(List.of(
-                        new Server().url("https://roomiehub-production.up.railway.app"),
-                        new Server().url("http://localhost:8080") // thêm localhost nếu cần
+                            new Server().url("https://roomiehub-production.up.railway.app"),
+                            new Server().url("http://localhost:8080")
                     ));
         }
     }
@@ -97,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app")
+                            .allowedOriginPatterns("https://localhost:8080", "https://roomiehub-production.up.railway.app")
 
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")

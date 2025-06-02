@@ -56,7 +56,6 @@ public class SecurityConfig {
                                 "/configuration/ui",
                                 "/configuration/security",
                                 "/webjars/**",
-                                "/api/surveys/**",
                                 "/api/test-chatgpt"
                         ).permitAll()
                         .anyRequest().authenticated()
