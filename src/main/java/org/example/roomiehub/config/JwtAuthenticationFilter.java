@@ -114,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOriginPatterns("https://localhost:8080", "https://roomiehub-production.up.railway.app")
+                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app")
 
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
