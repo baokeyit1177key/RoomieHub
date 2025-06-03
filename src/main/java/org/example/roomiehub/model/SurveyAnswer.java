@@ -19,7 +19,11 @@ public class SurveyAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int userId;
+
     private int birthYear;
+
+    private String email;
 
     @Enumerated(EnumType.STRING)
     private Enums.Hometown hometown;
