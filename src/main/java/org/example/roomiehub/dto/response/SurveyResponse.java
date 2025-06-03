@@ -12,6 +12,7 @@ import org.example.roomiehub.Enum.Enums;
 @Builder
 public class SurveyResponse {
     private Long id;
+    private int userId;
     private Integer birthYear;
     private Enums.Hometown  hometown;
     private Enums.Gender  gender;

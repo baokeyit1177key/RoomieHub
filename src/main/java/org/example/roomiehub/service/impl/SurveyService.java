@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.dto.request.SurveyRequest;
 import org.example.roomiehub.dto.response.SurveyResponse;
 import org.example.roomiehub.model.SurveyAnswer;
+import org.example.roomiehub.model.User;
 import org.example.roomiehub.repository.SurveyRepository;
+import org.example.roomiehub.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,11 +18,23 @@ import java.util.Optional;
 public class SurveyService {
 
     private final SurveyRepository repository;
+    private final UserRepository userRepository;
 
-    // Nhận DTO request, trả DTO response
     public SurveyResponse submitSurvey(SurveyRequest request) {
-        // Chuyển từ DTO request sang Entity
+        // Lấy thông tin user đang login
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // Lấy email/username
+
+        // Tìm user trong DB
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("User not found: " + email);
+        }
+        User user = userOptional.get();
+
+        // Tạo entity SurveyAnswer
         SurveyAnswer survey = SurveyAnswer.builder()
+                .userId(user.getId().intValue()) // Lưu userId
                 .birthYear(request.getBirthYear())
                 .hometown(request.getHometown())
                 .gender(request.getGender())
@@ -37,11 +53,10 @@ public class SurveyService {
         // Lưu entity vào DB
         SurveyAnswer savedSurvey = repository.save(survey);
 
-        // Chuyển từ Entity sang DTO response để trả về
+        // Trả response
         return mapToResponse(savedSurvey);
     }
 
-    // Helper chuyển Entity -> Response DTO
     private SurveyResponse mapToResponse(SurveyAnswer survey) {
         return SurveyResponse.builder()
                 .id(survey.getId())
@@ -62,15 +77,15 @@ public class SurveyService {
     }
 
     public SurveyResponse getSurveyById(Long id) {
-    Optional <SurveyAnswer> survey = repository.findById(id);
-    return survey.map(this::mapToResponse).orElse(null);
-}
-
-public boolean deleteSurveyById(Long id) {
-    if (repository.existsById(id)) {
-        repository.deleteById(id);
-        return true;
+        Optional<SurveyAnswer> survey = repository.findById(id);
+        return survey.map(this::mapToResponse).orElse(null);
     }
-    return false;
-}
+
+    public boolean deleteSurveyById(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }
