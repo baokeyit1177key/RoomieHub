@@ -9,6 +9,7 @@ import org.example.roomiehub.Enum.Enums;
 @Builder
 public class SurveyRequest {
     private Integer birthYear;
+    private String userName;
     private Enums.Hometown  hometown;
     private Enums.Gender  gender;
     private Enums.Occupation  occupation;
