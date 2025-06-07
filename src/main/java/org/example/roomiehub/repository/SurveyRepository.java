@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface SurveyRepository extends JpaRepository<SurveyAnswer, Long> {
 
-    Optional<User> findByEmail(String email);
+    Optional<SurveyAnswer> findByEmail(String email);
 
 }

@@ -1,28 +1,26 @@
 package org.example.roomiehub.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.roomiehub.Enum.Enums;
-
+import org.example.roomiehub.Enum.FurnitureLevel;
+import org.example.roomiehub.Enum.GenderLevel;
+import org.example.roomiehub.Enum.UtilitiesLevel;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder   // Thêm annotation này để có builder()
+@Builder // Thêm annotation này để có builder()
 @Entity
-@Table (name = "survey_answer")
+@Table(name = "survey_answer")
 public class SurveyAnswer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Thông tin người dùng
     private String userName;
-
     private int birthYear;
-
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -38,7 +36,6 @@ public class SurveyAnswer {
     private Enums.PriceRange priceRange;
 
     private double currentLatitude;
-
     private double currentLongitude;
 
     @Enumerated(EnumType.STRING)
@@ -58,4 +55,26 @@ public class SurveyAnswer {
 
     @Enumerated(EnumType.STRING)
     private Enums.YesNo inviteFriends;
+
+    // Giá thuê (VNĐ)
+private double price;
+
+// Diện tích phòng (m²)
+private double area;
+
+// Yêu cầu về giới tính người thuê (Nam, Nữ, Không yêu cầu)
+@Enumerated(EnumType.STRING)
+private GenderLevel genderRequiment;
+
+// Tiền cọc (có thể là số tiền hoặc mô tả như "1 tháng", "2 tháng")
+private double deposit;
+
+@Enumerated(EnumType.STRING)
+private UtilitiesLevel utilities;
+
+@Enumerated(EnumType.STRING)
+private FurnitureLevel furniture;
+
+// Vị trí địa lý dạng "latitude,longitude" (tọa độ GPS)
+private String location;
 }
