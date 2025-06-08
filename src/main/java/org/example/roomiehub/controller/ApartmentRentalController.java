@@ -1,6 +1,7 @@
 package org.example.roomiehub.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
 import org.example.roomiehub.service.ApartmentRentalService;
@@ -62,4 +63,12 @@ public class ApartmentRentalController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/filter")
+    public ResponseEntity<List<ApartmentRentalResponse>> filterApartments(
+            @RequestBody ApartmentFilterRequest filterRequest) {
+        List<ApartmentRentalResponse> results = apartmentRentalService.filterApartments(filterRequest);
+        return ResponseEntity.ok(results);
+    }
+
 }

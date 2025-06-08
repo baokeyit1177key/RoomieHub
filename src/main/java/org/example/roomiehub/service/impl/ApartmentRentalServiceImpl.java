@@ -1,6 +1,7 @@
 package org.example.roomiehub.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
 import org.example.roomiehub.model.ApartmentRental;
@@ -130,4 +131,30 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         return user.getId();
     }
+
+    @Override
+    public List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter) {
+        List<ApartmentRental> apartments = repository.findAll(); // lấy toàn bộ để filter bằng stream
+
+        return apartments.stream()
+                .filter(a -> filter.getMinPrice() == null || a.getPrice() >= filter.getMinPrice())
+                .filter(a -> filter.getMaxPrice() == null || a.getPrice() <= filter.getMaxPrice())
+                .filter(a -> filter.getMinArea() == null || a.getArea() >= filter.getMinArea())
+                .filter(a -> filter.getMaxArea() == null || a.getArea() <= filter.getMaxArea())
+                .filter(a -> filter.getGenderRequirement() == null || filter.getGenderRequirement().isBlank()
+                        || filter.getGenderRequirement().equalsIgnoreCase(a.getGenderRequirement()))
+                .filter(a -> {
+                    if (filter.getHasElevator() == null) return true;
+                    if (filter.getHasElevator()) {
+                        return a.getElevator() != null && a.getElevator().equalsIgnoreCase("yes");
+                    } else {
+                        return a.getElevator() == null || a.getElevator().equalsIgnoreCase("no");
+                    }
+                })
+                .filter(a -> filter.getAddressKeyword() == null || filter.getAddressKeyword().isBlank()
+                        || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
 }

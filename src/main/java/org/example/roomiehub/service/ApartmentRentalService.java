@@ -1,5 +1,6 @@
 package org.example.roomiehub.service;
 
+import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
 
@@ -16,4 +17,7 @@ public interface ApartmentRentalService {
     ApartmentRentalResponse updateApartmentRental(Long id, ApartmentRentalRequest request);
 
     boolean deleteApartmentRental(Long id);
+
+    List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter);
+
 }
