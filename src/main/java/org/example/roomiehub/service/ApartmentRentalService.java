@@ -22,4 +22,6 @@ public interface ApartmentRentalService {
 
     List<ApartmentRentalResponse> searchApartmentsByKeyword(String keyword);
 
+    List<ApartmentRentalResponse> findNearbyApartments(double lat, double lon, double radiusKm);
+
 }
