@@ -20,4 +20,6 @@ public interface ApartmentRentalService {
 
     List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter);
 
+    List<ApartmentRentalResponse> searchApartmentsByKeyword(String keyword);
+
 }

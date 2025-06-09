@@ -1,6 +1,7 @@
 package org.example.roomiehub.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
@@ -9,6 +10,7 @@ import org.example.roomiehub.model.User;
 import org.example.roomiehub.repository.ApartmentRentalRepository;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.ApartmentRentalService;
+import org.example.roomiehub.util.TextUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -155,6 +157,41 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                         || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ApartmentRentalResponse> searchApartmentsByKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return List.of();
+        }
+
+        String lowerKeyword = keyword.toLowerCase();
+        List<ApartmentRental> apartments = repository.findAll();
+
+        LevenshteinDistance distanceCalculator = new LevenshteinDistance();
+        int threshold = 3; // Số ký tự sai lệch cho phép
+
+        return apartments.stream()
+                .filter(a -> isFuzzyMatch(a.getTitle(), lowerKeyword, distanceCalculator, threshold)
+                        || isFuzzyMatch(a.getDescription(), lowerKeyword, distanceCalculator, threshold)
+                        || isFuzzyMatch(a.getAddress(), lowerKeyword, distanceCalculator, threshold))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isFuzzyMatch(String text, String keyword, LevenshteinDistance distanceCalculator, int threshold) {
+        if (text == null || keyword == null) return false;
+
+        String[] words = text.toLowerCase().split("\\s+");
+
+        for (String word : words) {
+            Integer distance = distanceCalculator.apply(word, keyword);
+            if (distance != null && distance <= threshold) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

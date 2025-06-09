@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class ApartmentFilterRequest {
+    private String keyword;
     private Double minPrice;
     private Double maxPrice;
     private Double minArea;
