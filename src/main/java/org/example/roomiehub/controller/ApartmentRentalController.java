@@ -77,5 +77,22 @@ public class ApartmentRentalController {
         return ResponseEntity.ok(results);
     }
 
+    @GetMapping("/nearby")
+    public ResponseEntity<?> findNearbyApartments(
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestParam(defaultValue = "5") double radiusKm) {
+
+        List<ApartmentRentalResponse> result = apartmentRentalService.findNearbyApartments(lat, lon, radiusKm);
+
+        if (result.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body("Không tìm thấy căn hộ nào trong bán kính bạn muốn tìm.");
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+
 
 }
