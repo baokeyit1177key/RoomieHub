@@ -71,4 +71,11 @@ public class ApartmentRentalController {
         return ResponseEntity.ok(results);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ApartmentRentalResponse>> searchApartments(@RequestParam String keyword) {
+        List<ApartmentRentalResponse> results = apartmentRentalService.searchApartmentsByKeyword(keyword);
+        return ResponseEntity.ok(results);
+    }
+
+
 }
