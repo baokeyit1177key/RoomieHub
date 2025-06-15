@@ -37,14 +37,21 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String userId, String email, String role) {
+        Claims claims = Jwts.claims();
+        claims.put("id", userId);
+        claims.put("email", email);
+        claims.put("role", role);
+
         return Jwts.builder()
-                .setSubject(username)
+                .setClaims(claims)
+                .setSubject(email) // optional
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10h
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractEmail(token);
