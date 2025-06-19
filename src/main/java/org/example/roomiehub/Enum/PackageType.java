@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum PackageType {
-    BASIC(50000),
+    BASIC(10000),
     PROFESSIONAL(100000),
     VIP(150000),
     VR(200000);
