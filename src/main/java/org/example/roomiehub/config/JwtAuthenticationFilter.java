@@ -38,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Cho phép các đường dẫn công khai (auth, swagger, docs, v.v.)
         if (path.startsWith("/api/auth/") ||
                 path.startsWith("/v3/api-docs") ||
+                path.startsWith("/api/payment/") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/swagger-resources") ||
                 path.startsWith("/webjars") ||
