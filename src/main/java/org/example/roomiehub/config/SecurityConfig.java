@@ -60,6 +60,8 @@ public class SecurityConfig {
                                 "/api/surveys",
                                 "/api/apartments",
                                 "/api/apartment-recommendation"
+                                "/api/payment/**"
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
