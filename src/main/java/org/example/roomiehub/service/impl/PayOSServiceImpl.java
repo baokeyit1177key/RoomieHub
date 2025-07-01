@@ -63,59 +63,5 @@ public class PayOSServiceImpl implements PayOSService {
         return response;
     }
 
-    @Override
-    public ObjectNode cancelPaymentLink(long orderCode, String cancellationReason) {
-        ObjectNode response = objectMapper.createObjectNode();
-        try {
-            System.out.println("Cancelling payment link for orderCode: " + orderCode + ", reason: " + cancellationReason);
-            PaymentLinkData order = payOS.cancelPaymentLink(orderCode, cancellationReason);
-            response.set("data", objectMapper.valueToTree(order));
-            response.put("error", 0);
-            response.put("message", "ok");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", "Hủy thanh toán thất bại: " + e.getMessage());
-            response.set("data", null);
-        }
-        return response;
-    }
 
-    @Override
-    public ObjectNode confirmWebhook(String webhookUrl) {
-        ObjectNode response = objectMapper.createObjectNode();
-        try {
-            System.out.println("Confirming webhook URL: " + webhookUrl);
-            String result = payOS.confirmWebhook(webhookUrl);
-            System.out.println("Webhook confirmation result: " + result);
-            response.set("data", objectMapper.valueToTree(result));
-            response.put("error", 0);
-            response.put("message", "ok");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", "Xác thực webhook thất bại: " + e.getMessage());
-            response.set("data", null);
-        }
-        return response;
-    }
-
-    @Override
-    public ObjectNode verifyPaymentWebhookData(Webhook webhookBody) {
-        ObjectNode response = objectMapper.createObjectNode();
-        try {
-            System.out.println("Webhook received: " + objectMapper.writeValueAsString(webhookBody));
-            WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
-            System.out.println("Webhook verified: " + objectMapper.writeValueAsString(data));
-            response.put("error", 0);
-            response.put("message", "Webhook delivered");
-            response.set("data", null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", "Xác minh webhook thất bại: " + e.getMessage());
-            response.set("data", null);
-        }
-        return response;
-    }
 }
