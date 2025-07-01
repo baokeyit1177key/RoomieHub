@@ -2,6 +2,7 @@ package org.example.roomiehub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.dto.request.PaymentRequest;
 import org.example.roomiehub.service.PayOSService;
@@ -9,6 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.Webhook;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -48,22 +53,13 @@ public class PayOSController {
         return ResponseEntity.status(response.get("error").asInt() == 0 ? 200 : 500).body(response);
     }
 
-    @PutMapping("/cancel/{orderCode}")
-    public ResponseEntity<?> cancelPaymentLink(@PathVariable long orderCode,
-                                               @RequestBody(required = false) String cancellationReason) {
-        ObjectNode response = payOSService.cancelPaymentLink(orderCode, cancellationReason);
-        return ResponseEntity.status(response.get("error").asInt() == 0 ? 200 : 500).body(response);
+
+    @PostMapping("/receive-hook")
+    public ResponseEntity<Void> receiveHook(HttpServletRequest request) throws IOException {
+        String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        System.out.println("Webhook body: " + body);
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/confirm-webhook")
-    public ResponseEntity<?> confirmWebhook(@RequestBody String webhookUrl) {
-        ObjectNode response = payOSService.confirmWebhook(webhookUrl);
-        return ResponseEntity.status(response.get("error").asInt() == 0 ? 200 : 500).body(response);
-    }
-
-    @PostMapping("/webhook")
-    public ResponseEntity<?> verifyPaymentWebhookData(@RequestBody Webhook webhookBody) {
-        ObjectNode response = payOSService.verifyPaymentWebhookData(webhookBody);
-        return ResponseEntity.status(response.get("error").asInt() == 0 ? 200 : 500).body(response);
-    }
 }
+
