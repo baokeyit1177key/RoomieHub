@@ -52,13 +52,6 @@ RoomieHub là một nền tảng giúp sinh viên và người đi làm tìm b�
 
 ```bash
 # Clone project
-git clone https://github.com/yourname/roomiehub-backend.git
-cd roomiehub-backend
+git clone https://github.com/yourname/roomiehub-backend.git](https://github.com/baokeyit1177key/RoomieHub.git
 
-# Cấu hình file application.properties
-spring.datasource.url=jdbc:mysql://localhost:3306/roomiehub
-spring.datasource.username=root
-spring.datasource.password=yourpassword
 
-# Run
-./mvnw spring-boot:run
