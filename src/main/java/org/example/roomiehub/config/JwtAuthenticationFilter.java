@@ -36,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         if (path.startsWith("/api/auth/") ||
+
     path.startsWith("/v3/api-docs") ||
     path.startsWith("/swagger-ui") ||
     path.startsWith("/swagger-resources") ||
@@ -48,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
     return;
 }
+
 
         final String authHeader = request.getHeader("Authorization");
 
@@ -101,7 +103,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             ))
                     .servers(List.of(
                             new Server().url("https://roomiehub-production.up.railway.app"),
-                            new Server().url("http://localhost:8080")
+                            new Server().url("http://localhost:8080"),
+                            new Server().url("http://localhost:5173")
                     ));
         }
     }
@@ -115,7 +118,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app")
+                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app" , "http://localhost:5173")
 
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
