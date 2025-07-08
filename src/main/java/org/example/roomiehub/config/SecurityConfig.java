@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/api/apartments",
                                 "/api/apartment-recommendation",
                                 "/api/auth/**",
+                                "/api/apartments",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

@@ -135,29 +135,48 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
     }
 
     @Override
-    public List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter) {
-        List<ApartmentRental> apartments = repository.findAll(); // lấy toàn bộ để filter bằng stream
+public List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter) {
+    List<ApartmentRental> apartments = repository.findAll();
 
-        return apartments.stream()
-                .filter(a -> filter.getMinPrice() == null || a.getPrice() >= filter.getMinPrice())
-                .filter(a -> filter.getMaxPrice() == null || a.getPrice() <= filter.getMaxPrice())
-                .filter(a -> filter.getMinArea() == null || a.getArea() >= filter.getMinArea())
-                .filter(a -> filter.getMaxArea() == null || a.getArea() <= filter.getMaxArea())
-                .filter(a -> filter.getGenderRequirement() == null || filter.getGenderRequirement().isBlank()
-                        || filter.getGenderRequirement().equalsIgnoreCase(a.getGenderRequirement()))
-                .filter(a -> {
-                    if (filter.getHasElevator() == null) return true;
-                    if (filter.getHasElevator()) {
-                        return a.getElevator() != null && a.getElevator().equalsIgnoreCase("yes");
-                    } else {
-                        return a.getElevator() == null || a.getElevator().equalsIgnoreCase("no");
-                    }
-                })
-                .filter(a -> filter.getAddressKeyword() == null || filter.getAddressKeyword().isBlank()
-                        || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
+    String keyword = filter.getKeyword() != null ? filter.getKeyword().toLowerCase() : null;
+    LevenshteinDistance distanceCalculator = new LevenshteinDistance();
+    int threshold = 3;
+
+    return apartments.stream()
+            .filter(a -> filter.getMinPrice() == null || a.getPrice() >= filter.getMinPrice())
+            .filter(a -> filter.getMaxPrice() == null || a.getPrice() <= filter.getMaxPrice())
+            .filter(a -> filter.getMinArea() == null || a.getArea() >= filter.getMinArea())
+            .filter(a -> filter.getMaxArea() == null || a.getArea() <= filter.getMaxArea())
+
+            // Lọc theo từng trường
+            .filter(a -> isMatch(filter.getGenderRequirement(), a.getGenderRequirement()))
+            .filter(a -> isMatch(filter.getDeposit(), a.getDeposit()))
+            .filter(a -> isMatch(filter.getLegalDocuments(), a.getLegalDocuments()))
+            .filter(a -> isMatch(filter.getUtilities(), a.getUtilities()))
+            .filter(a -> isMatch(filter.getFurniture(), a.getFurniture()))
+            .filter(a -> isMatch(filter.getInteriorCondition(), a.getInteriorCondition()))
+            .filter(a -> isMatch(filter.getElevator(), a.getElevator()))
+            .filter(a -> isMatch(filter.getContact(), a.getContact()))
+            .filter(a -> filter.getAddressKeyword() == null || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
+            .filter(a -> filter.getDescriptionKeyword() == null || a.getDescription().toLowerCase().contains(filter.getDescriptionKeyword().toLowerCase()))
+
+            // Fuzzy search keyword tổng hợp (nếu có)
+            .filter(a -> {
+                if (keyword == null || keyword.isBlank()) return true;
+                return isFuzzyMatch(a.getTitle(), keyword, distanceCalculator, threshold)
+                        || isFuzzyMatch(a.getDescription(), keyword, distanceCalculator, threshold)
+                        || isFuzzyMatch(a.getAddress(), keyword, distanceCalculator, threshold);
+            })
+
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+private boolean isMatch(String expected, String actual) {
+    return expected == null || expected.isBlank()
+            || (actual != null && actual.toLowerCase().contains(expected.toLowerCase()));
+}
+
 
     @Override
     public List<ApartmentRentalResponse> searchApartmentsByKeyword(String keyword) {
