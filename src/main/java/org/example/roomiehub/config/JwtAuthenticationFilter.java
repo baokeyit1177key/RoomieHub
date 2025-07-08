@@ -35,18 +35,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Cho phép các đường dẫn công khai (auth, swagger, docs, v.v.)
         if (path.startsWith("/api/auth/") ||
-                path.startsWith("/v3/api-docs") ||
-                path.startsWith("/swagger-ui") ||
-                path.startsWith("/swagger-resources") ||
-                path.startsWith("/webjars") ||
-                path.equals("/swagger-ui.html") ||
-                path.equals("/") ||
-                path.startsWith("/api/test-chatgpt")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    path.startsWith("/v3/api-docs") ||
+    path.startsWith("/swagger-ui") ||
+    path.startsWith("/swagger-resources") ||
+    path.startsWith("/webjars") ||
+    path.equals("/swagger-ui.html") ||
+    path.equals("/") ||
+    path.startsWith("/api/test-chatgpt") ||
+    path.startsWith("/api/apartments") // ← Thêm dòng này
+) {
+    filterChain.doFilter(request, response);
+    return;
+}
 
         final String authHeader = request.getHeader("Authorization");
 

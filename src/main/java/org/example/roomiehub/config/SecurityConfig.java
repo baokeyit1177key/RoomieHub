@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/apartments",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
@@ -58,6 +59,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/api/test-chatgpt",
                                 "/api/surveys"
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
