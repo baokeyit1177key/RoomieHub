@@ -18,44 +18,42 @@ public class SurveyService {
     private final SurveyRepository repository;
 
     public SurveyResponse submitSurvey(SurveyRequest request) {
-        // Lấy thông tin user đang login
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // Lấy email/username
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String email = authentication.getName();
 
-        // Tạo entity SurveyAnswer
-        SurveyAnswer survey = SurveyAnswer.builder()
-                .userName(email)
-                .birthYear(request.getBirthYear())
-                .hometown(request.getHometown())
-                .gender(request.getGender())
-                .occupation(request.getOccupation())
-                .priceRange(request.getPriceRange())
-                .currentLatitude(request.getCurrentLatitude())
-                .currentLongitude(request.getCurrentLongitude())
-                .preferredLocation(request.getPreferredLocation())
-                .smoking(request.getSmoking())
-                .pets(request.getPets())
-                .cookFrequency(request.getCookFrequency())
-                .sleepHabit(request.getSleepHabit())
-                .inviteFriends(request.getInviteFriends())
-
-                // Các field mới
-                .price(request.getPrice())
-                .area(request.getArea())
-                .genderRequiment(request.getGenderRequiment())
-                .deposit(request.getDeposit())
-                .utilities(request.getUtilities())
-                .furniture(request.getFurniture())
-                .location(request.getLocation())
-                .build();
-
-        // Lưu entity vào DB
-        SurveyAnswer savedSurvey = repository.save(survey);
-
-        // Trả response
-        return mapToResponse(savedSurvey);
+    // Kiểm tra nếu email đã có survey
+    if (repository.findByEmail(email).isPresent()) {
+        return null; // Cho controller biết để xử lý lỗi
     }
 
+    SurveyAnswer survey = SurveyAnswer.builder()
+            .userName(request.getUserName())
+            .email(email)
+            .birthYear(request.getBirthYear())
+            .hometown(request.getHometown())
+            .gender(request.getGender())
+            .occupation(request.getOccupation())
+            .priceRange(request.getPriceRange())
+            .currentLatitude(request.getCurrentLatitude())
+            .currentLongitude(request.getCurrentLongitude())
+            .preferredLocation(request.getPreferredLocation())
+            .smoking(request.getSmoking())
+            .pets(request.getPets())
+            .cookFrequency(request.getCookFrequency())
+            .sleepHabit(request.getSleepHabit())
+            .inviteFriends(request.getInviteFriends())
+            .price(request.getPrice())
+            .area(request.getArea())
+            .genderRequiment(request.getGenderRequiment())
+            .deposit(request.getDeposit())
+            .utilities(request.getUtilities())
+            .furniture(request.getFurniture())
+            .location(request.getLocation())
+            .build();
+
+    SurveyAnswer savedSurvey = repository.save(survey);
+    return mapToResponse(savedSurvey);
+}
     private SurveyResponse mapToResponse(SurveyAnswer survey) {
         return SurveyResponse.builder()
                 .id(survey.getId())
@@ -97,4 +95,52 @@ public class SurveyService {
         }
         return false;
     }
+
+    public SurveyResponse getSurveyByCurrentUser() {
+    String email = getCurrentUserEmail();
+    Optional<SurveyAnswer> survey = repository.findByEmail(email);
+    return survey.map(this::mapToResponse).orElse(null);
+}
+
+public SurveyResponse updateSurveyForCurrentUser(SurveyRequest request) {
+    String email = getCurrentUserEmail();
+    Optional<SurveyAnswer> optionalSurvey = repository.findByEmail(email);
+
+    if (optionalSurvey.isEmpty()) return null;
+
+    SurveyAnswer survey = optionalSurvey.get();
+
+    // Cập nhật dữ liệu từ request
+    survey.setUserName(request.getUserName());
+    survey.setBirthYear(request.getBirthYear());
+    survey.setHometown(request.getHometown());
+    survey.setGender(request.getGender());
+    survey.setOccupation(request.getOccupation());
+    survey.setPriceRange(request.getPriceRange());
+    survey.setCurrentLatitude(request.getCurrentLatitude());
+    survey.setCurrentLongitude(request.getCurrentLongitude());
+    survey.setPreferredLocation(request.getPreferredLocation());
+    survey.setSmoking(request.getSmoking());
+    survey.setPets(request.getPets());
+    survey.setCookFrequency(request.getCookFrequency());
+    survey.setSleepHabit(request.getSleepHabit());
+    survey.setInviteFriends(request.getInviteFriends());
+    survey.setPrice(request.getPrice());
+    survey.setArea(request.getArea());
+    survey.setGenderRequiment(request.getGenderRequiment());
+    survey.setDeposit(request.getDeposit());
+    survey.setUtilities(request.getUtilities());
+    survey.setFurniture(request.getFurniture());
+    survey.setLocation(request.getLocation());
+
+    SurveyAnswer updated = repository.save(survey);
+    return mapToResponse(updated);
+}
+
+private String getCurrentUserEmail() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication.getName();
+}
+
+
 }
