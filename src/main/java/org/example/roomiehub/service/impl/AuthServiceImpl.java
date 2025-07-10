@@ -59,11 +59,16 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("Invalid email or password");
         }
 
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() ->
-                new AuthException("User not found"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AuthException("User not found"));
 
-        // Sinh token dựa trên email user (username)
-        String token = jwtUtil.generateToken(user.getEmail());
+        //Lấy role đầu tiên (ví dụ chỉ có 1 vai trò duy nhất)
+        String role = user.getRole().get(0).name();
+
+        //Gọi hàm generateToken mới
+        String token = jwtUtil.generateToken(user.getId().toString(), user.getEmail(), role);
+
         return new LoginResponse(token);
     }
+
 }

@@ -47,6 +47,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+
+                                "/api/apartments",
+                                "/api/apartment-recommendation",
                                 "/api/auth/**",
                                 "/api/apartments",
                                 "/swagger-ui/**",
@@ -58,7 +61,8 @@ public class SecurityConfig {
                                 "/configuration/security",
                                 "/webjars/**",
                                 "/api/test-chatgpt",
-                                "/api/surveys"
+                                "/api/surveys",
+                                "/api/payment/**"
 
                         ).permitAll()
                         .anyRequest().authenticated()
