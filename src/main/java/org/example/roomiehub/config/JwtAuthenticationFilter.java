@@ -34,22 +34,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+         if ("OPTIONS".equalsIgnoreCase(request.getMethod()) ||
+            path.startsWith("/api/auth/") ||
+            path.startsWith("/v3/api-docs") ||
+            path.startsWith("/swagger-ui") ||
+            path.startsWith("/swagger-resources") ||
+            path.startsWith("/webjars") ||
+            path.equals("/swagger-ui.html") ||
+            path.equals("/") ||
+            path.startsWith("/api/test-chatgpt") ||
+            path.startsWith("/api/apartments")) {
 
-        if (path.startsWith("/api/auth/") ||
-
-    path.startsWith("/v3/api-docs") ||
-    path.startsWith("/swagger-ui") ||
-    path.startsWith("/swagger-resources") ||
-    path.startsWith("/webjars") ||
-    path.equals("/swagger-ui.html") ||
-    path.equals("/") ||
-    path.startsWith("/api/test-chatgpt") ||
-    path.startsWith("/api/apartments") // ← Thêm dòng này
-) {
-    filterChain.doFilter(request, response);
-    return;
-}
-
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         final String authHeader = request.getHeader("Authorization");
 
