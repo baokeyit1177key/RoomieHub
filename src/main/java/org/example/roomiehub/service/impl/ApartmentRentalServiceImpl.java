@@ -246,4 +246,25 @@ private boolean isMatch(String expected, String actual) {
         return R * c;
     }
 
+    @Override
+public long countAllApartments() {
+    return repository.count();
+}
+
+@Override
+public long countMyApartments() {
+    Long userId = getCurrentUserIdByEmail();
+    return repository.countByUserId(userId);
+}
+
+@Override
+public List<ApartmentRentalResponse> getMyApartments() {
+    Long userId = getCurrentUserIdByEmail();
+    List<ApartmentRental> myApartments = repository.findByUserId(userId);
+    return myApartments.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+
 }
