@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 "/api/surveys",
                                 "/api/payment/**"
 
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
