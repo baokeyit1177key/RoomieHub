@@ -29,16 +29,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+   @Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+        throws ServletException, IOException {
 
-        String path = request.getRequestURI();
-        if ("GET".equalsIgnoreCase(request.getMethod()) && path.equals("/api/apartments")) {
-    filterChain.doFilter(request, response);
-    return;
-}
-         if ("OPTIONS".equalsIgnoreCase(request.getMethod()) ||
+    String path = request.getRequestURI();
+    String method = request.getMethod();
+
+    System.out.println(">>> [JwtFilter] Request Method: " + method + ", URI: " + path);
+
+    // Các API public, không yêu cầu token
+    if ("GET".equalsIgnoreCase(method) &&
+            (path.equals("/api/apartments") || path.equals("/api/apartments/count"))) {
+        System.out.println(">>> [JwtFilter] Public GET path - skipping auth: " + path);
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    if ("OPTIONS".equalsIgnoreCase(method) ||
             path.startsWith("/api/auth/") ||
             path.startsWith("/v3/api-docs") ||
             path.startsWith("/swagger-ui") ||
@@ -46,43 +54,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/webjars") ||
             path.equals("/swagger-ui.html") ||
             path.equals("/") ||
-            path.startsWith("/api/test-chatgpt") ) {
+            path.startsWith("/api/test-chatgpt")) {
 
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        final String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
-            return;
-        }
-
-        String token = authHeader.substring(7);
-        String email;
-
-        try {
-            email = jwtUtil.extractEmail(token);
-        } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-            return;
-        }
-
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            if (jwtUtil.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token validation failed");
-                return;
-            }
-        }
-
+        System.out.println(">>> [JwtFilter] Whitelisted path - skipping auth: " + path);
         filterChain.doFilter(request, response);
+        return;
     }
+
+    final String authHeader = request.getHeader("Authorization");
+
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        System.out.println(">>> [JwtFilter] Missing or invalid Authorization header");
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
+        return;
+    }
+
+    String token = authHeader.substring(7);
+    String email;
+
+    try {
+        email = jwtUtil.extractEmail(token);
+    } catch (Exception e) {
+        System.out.println(">>> [JwtFilter] Failed to extract email from JWT: " + e.getMessage());
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+        return;
+    }
+
+    if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+        if (jwtUtil.validateToken(token, userDetails)) {
+            System.out.println(">>> [JwtFilter] JWT token validated, setting authentication for user: " + email);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        } else {
+            System.out.println(">>> [JwtFilter] JWT token validation failed for user: " + email);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token validation failed");
+            return;
+        }
+    }
+
+    filterChain.doFilter(request, response);
+}
+
 
 
 

@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface ApartmentRentalRepository extends JpaRepository<ApartmentRental, Long> {
 
+    long countByUserId(Long userId);
+
+List<ApartmentRental> findByUserId(Long userId);
+
 }

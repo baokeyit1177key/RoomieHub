@@ -24,4 +24,11 @@ public interface ApartmentRentalService {
 
     List<ApartmentRentalResponse> findNearbyApartments(double lat, double lon, double radiusKm);
 
+    long countAllApartments();
+
+long countMyApartments();
+
+List<ApartmentRentalResponse> getMyApartments();
+
+
 }
