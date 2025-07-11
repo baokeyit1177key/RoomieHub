@@ -34,6 +34,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        if ("GET".equalsIgnoreCase(request.getMethod()) && path.equals("/api/apartments")) {
+    filterChain.doFilter(request, response);
+    return;
+}
          if ("OPTIONS".equalsIgnoreCase(request.getMethod()) ||
             path.startsWith("/api/auth/") ||
             path.startsWith("/v3/api-docs") ||
@@ -42,8 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/webjars") ||
             path.equals("/swagger-ui.html") ||
             path.equals("/") ||
-            path.startsWith("/api/test-chatgpt") ||
-            path.startsWith("/api/apartments")) {
+            path.startsWith("/api/test-chatgpt") ) {
 
             filterChain.doFilter(request, response);
             return;
