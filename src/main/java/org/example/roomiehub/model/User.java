@@ -29,7 +29,7 @@ public class User {
 
     private String password;
 
-    private List<Enums.Role> role;
+    private Enums.Role role;
 
     private LocalDate createdDate;
 

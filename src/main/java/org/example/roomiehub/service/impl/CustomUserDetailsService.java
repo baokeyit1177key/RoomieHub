@@ -26,16 +26,16 @@ public class CustomUserDetailsService implements UserDetailsService  {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                mapRolesToAuthorities(user.getRole())
-        );
-    }
+    return new org.springframework.security.core.userdetails.User(
+            user.getEmail(),
+            user.getPassword(),
+            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+    );
+}
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(List<Enums.Role> roles) {
         return roles.stream()
