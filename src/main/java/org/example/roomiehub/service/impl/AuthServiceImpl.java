@@ -38,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(List.of(Enums.Role.USER))
+                .role(Enums.Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AuthException("User not found"));
 
         //Lấy role đầu tiên (ví dụ chỉ có 1 vai trò duy nhất)
-        String role = user.getRole().get(0).name();
+        String role = user.getRole().name();
 
         //Gọi hàm generateToken mới
         String token = jwtUtil.generateToken(user.getId().toString(), user.getEmail(), role);
