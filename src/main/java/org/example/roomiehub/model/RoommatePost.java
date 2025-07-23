@@ -27,6 +27,11 @@ public class RoommatePost {
     private double areaSquareMeters; // Diện tích căn nhà (m2)
     private double monthlyRentPrice; // Giá thuê hàng tháng
 
+    @ElementCollection
+@CollectionTable(name = "roommate_post_images", joinColumns = @JoinColumn(name = "roommate_post_id"))
+@Column(name = "image_url")
+private List<String> imageUrls = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT") // Kiểu TEXT trong DB cho mô tả dài
     private String description; // Mô tả chi tiết về căn nhà
 

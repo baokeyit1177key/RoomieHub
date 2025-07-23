@@ -10,4 +10,7 @@ import java.util.List;
 public interface RoommatePreferenceRepository extends JpaRepository<RoommatePreference, Long> {
     // Tìm tất cả RoommatePreference theo RoommatePost ID
     List<RoommatePreference> findByRoommatePostId(Long roommatePostId);
+
+    // Xóa tất cả RoommatePreference theo RoommatePost ID
+    void deleteByRoommatePostId(Long roommatePostId);
 }

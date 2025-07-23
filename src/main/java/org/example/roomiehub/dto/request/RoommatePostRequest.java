@@ -15,11 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoommatePostRequest {
-    private String ownerPost;
+    //private String ownerPost;
     private String address;
     private double areaSquareMeters;
     private double monthlyRentPrice;
     private String description;
+    private List<String> imageUrls;
+
     private List<RoommatePreferenceRequest> roommatePreferences = new ArrayList<>();
 
     @Data

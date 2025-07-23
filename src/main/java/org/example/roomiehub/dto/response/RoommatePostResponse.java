@@ -21,6 +21,8 @@ public class RoommatePostResponse {
     private double areaSquareMeters;
     private double monthlyRentPrice;
     private String description;
+    private List<String> imageUrls;
+
     private Long userId; // Chỉ trả về ID của user để tránh tải toàn bộ đối tượng User
     private List<RoommatePreferenceResponse> roommatePreferences = new ArrayList<>();
     private LocalDate createdDate;
