@@ -27,12 +27,12 @@ public class SurveyResponse {
     private Enums.SleepHabit sleepHabit;
     private Enums.YesNo inviteFriends;
 
-    // Phần tìm phòng (áp dụng với việc tìm thuê hoặc tìm ở ghép)
-    private Double price;                     // Giá thuê
-    private Double area;                      // Diện tích
-    private GenderLevel genderRequiment;      // Giới tính yêu cầu
-    private Double deposit;                   // Tiền cọc
-    private UtilitiesLevel utilities;         // Tiện ích
-    private FurnitureLevel furniture;         // Nội thất
-    private String location;                  // Tọa độ "latitude,longitude"
+    // Phần tìm phòng
+    private Double price;
+    private Double area;
+    private GenderLevel genderRequiment;
+    private Double deposit;
+    private UtilitiesLevel utilities;
+    private FurnitureLevel furniture;
+    private String location;
 }

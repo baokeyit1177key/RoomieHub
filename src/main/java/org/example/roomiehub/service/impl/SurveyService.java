@@ -17,14 +17,10 @@ public class SurveyService {
 
     private final SurveyRepository repository;
 
-    public SurveyResponse submitSurvey(SurveyRequest request) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
+  public SurveyResponse submitSurvey(SurveyRequest request) {
+    String email = getCurrentUserEmail();
 
-    // Kiểm tra nếu email đã có survey
-    if (repository.findByEmail(email).isPresent()) {
-        return null; // Cho controller biết để xử lý lỗi
-    }
+    if (repository.findByEmail(email).isPresent()) return null;
 
     SurveyAnswer survey = SurveyAnswer.builder()
             .userName(request.getUserName())
@@ -51,8 +47,7 @@ public class SurveyService {
             .location(request.getLocation())
             .build();
 
-    SurveyAnswer savedSurvey = repository.save(survey);
-    return mapToResponse(savedSurvey);
+    return mapToResponse(repository.save(survey));
 }
     private SurveyResponse mapToResponse(SurveyAnswer survey) {
         return SurveyResponse.builder()
@@ -110,31 +105,29 @@ public SurveyResponse updateSurveyForCurrentUser(SurveyRequest request) {
 
     SurveyAnswer survey = optionalSurvey.get();
 
-    // Cập nhật dữ liệu từ request
-    survey.setUserName(request.getUserName());
-    survey.setBirthYear(request.getBirthYear());
-    survey.setHometown(request.getHometown());
-    survey.setGender(request.getGender());
-    survey.setOccupation(request.getOccupation());
-    survey.setPriceRange(request.getPriceRange());
-    survey.setCurrentLatitude(request.getCurrentLatitude());
-    survey.setCurrentLongitude(request.getCurrentLongitude());
-    survey.setPreferredLocation(request.getPreferredLocation());
-    survey.setSmoking(request.getSmoking());
-    survey.setPets(request.getPets());
-    survey.setCookFrequency(request.getCookFrequency());
-    survey.setSleepHabit(request.getSleepHabit());
-    survey.setInviteFriends(request.getInviteFriends());
-    survey.setPrice(request.getPrice());
-    survey.setArea(request.getArea());
-    survey.setGenderRequiment(request.getGenderRequiment());
-    survey.setDeposit(request.getDeposit());
-    survey.setUtilities(request.getUtilities());
-    survey.setFurniture(request.getFurniture());
-    survey.setLocation(request.getLocation());
+    if (request.getUserName() != null) survey.setUserName(request.getUserName());
+    if (request.getBirthYear() != null) survey.setBirthYear(request.getBirthYear());
+    if (request.getHometown() != null) survey.setHometown(request.getHometown());
+    if (request.getGender() != null) survey.setGender(request.getGender());
+    if (request.getOccupation() != null) survey.setOccupation(request.getOccupation());
+    if (request.getPriceRange() != null) survey.setPriceRange(request.getPriceRange());
+    if (request.getCurrentLatitude() != null) survey.setCurrentLatitude(request.getCurrentLatitude());
+    if (request.getCurrentLongitude() != null) survey.setCurrentLongitude(request.getCurrentLongitude());
+    if (request.getPreferredLocation() != null) survey.setPreferredLocation(request.getPreferredLocation());
+    if (request.getSmoking() != null) survey.setSmoking(request.getSmoking());
+    if (request.getPets() != null) survey.setPets(request.getPets());
+    if (request.getCookFrequency() != null) survey.setCookFrequency(request.getCookFrequency());
+    if (request.getSleepHabit() != null) survey.setSleepHabit(request.getSleepHabit());
+    if (request.getInviteFriends() != null) survey.setInviteFriends(request.getInviteFriends());
+    if (request.getPrice() != null) survey.setPrice(request.getPrice());
+    if (request.getArea() != null) survey.setArea(request.getArea());
+    if (request.getGenderRequiment() != null) survey.setGenderRequiment(request.getGenderRequiment());
+    if (request.getDeposit() != null) survey.setDeposit(request.getDeposit());
+    if (request.getUtilities() != null) survey.setUtilities(request.getUtilities());
+    if (request.getFurniture() != null) survey.setFurniture(request.getFurniture());
+    if (request.getLocation() != null) survey.setLocation(request.getLocation());
 
-    SurveyAnswer updated = repository.save(survey);
-    return mapToResponse(updated);
+    return mapToResponse(repository.save(survey));
 }
 
 private String getCurrentUserEmail() {

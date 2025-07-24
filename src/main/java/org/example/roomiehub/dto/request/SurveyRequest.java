@@ -11,27 +11,26 @@ import org.example.roomiehub.Enum.UtilitiesLevel;
 @AllArgsConstructor
 @Builder
 public class SurveyRequest {
-    private Integer birthYear;
-    private String userName;
-    private Enums.Hometown hometown;
-    private Enums.Gender gender;
-    private Enums.Occupation occupation;
-    private Enums.PriceRange priceRange;
-    private Double currentLatitude;
-    private Double currentLongitude;
-    private Enums.PreferredLocation preferredLocation;
-    private Enums.YesNo smoking;
-    private Enums.YesNo pets;
-    private Enums.CookFrequency cookFrequency;
-    private Enums.SleepHabit sleepHabit;
-    private Enums.YesNo inviteFriends;
+    private Integer birthYear;                            // có thể null
+    private String userName;                              // có thể null
+    private Enums.Hometown hometown;                      // có thể null
+    private Enums.Gender gender;                          // có thể null
+    private Enums.Occupation occupation;                  // có thể null
+    private Enums.PriceRange priceRange;                  // có thể null
+    private Double currentLatitude;                       // có thể null
+    private Double currentLongitude;                      // có thể null
+    private Enums.PreferredLocation preferredLocation;    // có thể null
+    private Enums.YesNo smoking;                          // có thể null
+    private Enums.YesNo pets;                             // có thể null
+    private Enums.CookFrequency cookFrequency;            // có thể null
+    private Enums.SleepHabit sleepHabit;                  // có thể null
+    private Enums.YesNo inviteFriends;                    // có thể null
 
-    // Phần tìm phòng (áp dụng với việc tìm thuê hoặc tìm ở ghép)
-    private Double price;                     // Giá thuê
-    private Double area;                      // Diện tích
-    private GenderLevel genderRequiment;      // Giới tính yêu cầu
-    private Double deposit;                   // Tiền cọc
-    private UtilitiesLevel utilities;         // Tiện ích
-    private FurnitureLevel furniture;         // Nội thất
-    private String location;                  // Tọa độ "latitude,longitude"
+    private Double price;                                 // có thể null
+    private Double area;                                  // có thể null
+    private GenderLevel genderRequiment;                  // có thể null
+    private Double deposit;                               // có thể null
+    private UtilitiesLevel utilities;                     // có thể null
+    private FurnitureLevel furniture;                     // có thể null
+    private String location;                              // có thể null
 }
