@@ -10,7 +10,7 @@ import org.example.roomiehub.Enum.UtilitiesLevel;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // Thêm annotation này để có builder()
+@Builder
 @Entity
 @Table(name = "survey_answer")
 public class SurveyAnswer {
@@ -18,9 +18,8 @@ public class SurveyAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Thông tin người dùng
     private String userName;
-    private int birthYear;
+    private Integer birthYear;
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -35,8 +34,8 @@ public class SurveyAnswer {
     @Enumerated(EnumType.STRING)
     private Enums.PriceRange priceRange;
 
-    private double currentLatitude;
-    private double currentLongitude;
+    private Double currentLatitude;
+    private Double currentLongitude;
 
     @Enumerated(EnumType.STRING)
     private Enums.PreferredLocation preferredLocation;
@@ -56,25 +55,19 @@ public class SurveyAnswer {
     @Enumerated(EnumType.STRING)
     private Enums.YesNo inviteFriends;
 
-    // Giá thuê (VNĐ)
-private double price;
+    private Double price;
+    private Double area;
 
-// Diện tích phòng (m²)
-private double area;
+    @Enumerated(EnumType.STRING)
+    private GenderLevel genderRequiment;
 
-// Yêu cầu về giới tính người thuê (Nam, Nữ, Không yêu cầu)
-@Enumerated(EnumType.STRING)
-private GenderLevel genderRequiment;
+    private Double deposit;
 
-// Tiền cọc (có thể là số tiền hoặc mô tả như "1 tháng", "2 tháng")
-private double deposit;
+    @Enumerated(EnumType.STRING)
+    private UtilitiesLevel utilities;
 
-@Enumerated(EnumType.STRING)
-private UtilitiesLevel utilities;
+    @Enumerated(EnumType.STRING)
+    private FurnitureLevel furniture;
 
-@Enumerated(EnumType.STRING)
-private FurnitureLevel furniture;
-
-// Vị trí địa lý dạng "latitude,longitude" (tọa độ GPS)
-private String location;
+    private String location;
 }
