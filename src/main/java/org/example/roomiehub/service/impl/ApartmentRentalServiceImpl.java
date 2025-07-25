@@ -5,9 +5,12 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
+import org.example.roomiehub.exception.NoActivePackageException;
 import org.example.roomiehub.model.ApartmentRental;
 import org.example.roomiehub.model.User;
+import org.example.roomiehub.model.UserPackage;
 import org.example.roomiehub.repository.ApartmentRentalRepository;
+import org.example.roomiehub.repository.UserPackageRepository;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.ApartmentRentalService;
 import org.example.roomiehub.util.TextUtils;
@@ -25,10 +28,12 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
 
     private final ApartmentRentalRepository repository;
     private final UserRepository userRepository;
+    private final UserPackageRepository userPackageRepository;
 
     @Override
     public ApartmentRentalResponse createApartmentRental(ApartmentRentalRequest request) {
         Long userId = getCurrentUserIdByEmail();
+        User user = userRepository.findById(userId).orElseThrow();
 
         ApartmentRental apartment = ApartmentRental.builder()
                 .title(request.getTitle())
@@ -48,6 +53,15 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .location(request.getLocation())
                 .userId(userId)
                 .build();
+        UserPackage activePackage = userPackageRepository
+                .findFirstByUserIdAndActiveTrueOrderByEndDateDesc(userId)
+                .orElseThrow(() -> new NoActivePackageException("Bạn chưa có gói đăng bài hợp lệ"));
+
+        if (activePackage.getRemainingPosts() <= 0) {
+            throw new RuntimeException("Bạn đã hết lượt đăng bài.");
+        }
+        activePackage.setRemainingPosts(activePackage.getRemainingPosts() - 1);
+        userPackageRepository.save(activePackage);
 
         ApartmentRental savedApartment = repository.save(apartment);
         return mapToResponse(savedApartment);

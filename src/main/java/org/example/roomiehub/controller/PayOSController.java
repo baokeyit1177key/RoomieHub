@@ -5,11 +5,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.dto.request.PaymentRequest;
+import org.example.roomiehub.model.Payment;
+import org.example.roomiehub.repository.PaymentRepository;
 import org.example.roomiehub.service.PayOSService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.Webhook;
+import vn.payos.type.WebhookData;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,14 +23,18 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
 public class PayOSController {
+    private final PaymentRepository paymentRepository;
 
     private final PayOSService payOSService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/create")
-    public ResponseEntity<?> createPayment(@RequestBody PaymentRequest request) {
+    public ResponseEntity<?> createPayment(@RequestBody PaymentRequest request, Authentication authentication) {
         try {
-            CheckoutResponseData response = payOSService.createPayment(request);
+            String email = authentication.getName(); // ✅ Lấy email từ user đang đăng nhập
+
+            CheckoutResponseData response = payOSService.createPayment(request, email); // Truyền vào service
+
             ObjectNode jsonResponse = objectMapper.createObjectNode();
             jsonResponse.put("error", 0);
             jsonResponse.put("message", "success");
@@ -47,6 +55,7 @@ public class PayOSController {
         }
     }
 
+
     @GetMapping("/{orderCode}")
     public ResponseEntity<?> getPaymentLinkInformation(@PathVariable long orderCode) {
         ObjectNode response = payOSService.getPaymentLinkInformation(orderCode);
@@ -57,9 +66,21 @@ public class PayOSController {
     @PostMapping("/receive-hook")
     public ResponseEntity<Void> receiveHook(HttpServletRequest request) throws IOException {
         String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-        System.out.println("Webhook body: " + body);
+        Webhook webhook = objectMapper.readValue(body, Webhook.class);
+
+        System.out.println("Webhook received: " + body);
+
+        payOSService.confirmWebhook(webhook);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/cancel-payment")
+    public ResponseEntity<Void> cancelPayment(@RequestParam Long orderCode) {
+        payOSService.cancelPayment(orderCode);
+        return ResponseEntity.ok().build();
+    }
+
+
 
 }
 

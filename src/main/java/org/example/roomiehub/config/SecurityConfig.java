@@ -63,7 +63,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/api/test-chatgpt",
                                 "/api/surveys",
-                                "/api/payment/**"
+                                "/api/payment/receive-hook"
 
 
                         ).permitAll()

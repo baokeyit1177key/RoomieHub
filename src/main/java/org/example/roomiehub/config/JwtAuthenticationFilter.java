@@ -40,7 +40,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
 
     // Các API public, không yêu cầu token
     if ("GET".equalsIgnoreCase(method) &&
-            (path.equals("/api/apartments") || path.equals("/api/apartments/count"))) {
+            (path.equals("/api/apartments") || path.equals("/api/apartments/count") || path.equals("/api/apartments/create") || path.equals("/api/payment/receive-hook"))) {
         System.out.println(">>> [JwtFilter] Public GET path - skipping auth: " + path);
         filterChain.doFilter(request, response);
         return;
@@ -54,7 +54,10 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             path.startsWith("/webjars") ||
             path.equals("/swagger-ui.html") ||
             path.equals("/") ||
-            path.startsWith("/api/test-chatgpt")) {
+            path.startsWith("/api/test-chatgpt") ||
+          path.equals("/api/payment/receive-hook")
+
+    ) {
 
         System.out.println(">>> [JwtFilter] Whitelisted path - skipping auth: " + path);
         filterChain.doFilter(request, response);
