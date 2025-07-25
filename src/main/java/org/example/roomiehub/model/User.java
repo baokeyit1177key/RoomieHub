@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.roomiehub.Enum.Enums;
+import org.example.roomiehub.Enum.PackageType;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ public class User {
     private Enums.Role role;
 
     private LocalDate createdDate;
+
 
     @PrePersist
     protected void onCreate() {

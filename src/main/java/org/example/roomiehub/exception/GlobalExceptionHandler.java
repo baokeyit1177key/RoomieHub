@@ -19,4 +19,12 @@ public class GlobalExceptionHandler {
 
     // Class để trả lỗi chuẩn
     record ErrorResponse(String code, String message) {}
+
+    @ExceptionHandler(NoActivePackageException.class)
+    public ResponseEntity<Object> handleNoActivePackageException(NoActivePackageException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST) // hoặc 403 tùy bạn
+                .body(new ErrorResponse("NO_ACTIVE_PACKAGE", ex.getMessage()));
+    }
+
 }

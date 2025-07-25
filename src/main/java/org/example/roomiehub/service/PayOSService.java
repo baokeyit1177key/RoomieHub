@@ -6,7 +6,8 @@ import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.Webhook;
 
 public interface PayOSService {
-    CheckoutResponseData createPayment(PaymentRequest request);
+    CheckoutResponseData createPayment(PaymentRequest request, String email);
     ObjectNode getPaymentLinkInformation(long orderCode);
-
+    void confirmWebhook(Webhook webhook);
+    void cancelPayment(Long orderCode);
 }
