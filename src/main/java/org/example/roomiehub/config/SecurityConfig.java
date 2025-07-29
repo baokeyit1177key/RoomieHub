@@ -23,19 +23,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
+
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtFilter,
                           JwtAuthEntryPoint jwtAuthEntryPoint,
-                          CustomUserDetailsService customUserDetailsService) {
+                          CustomUserDetailsService customUserDetailsService, OAuth2SuccessHandler oAuth2SuccessHandler) {
         this.jwtFilter = jwtFilter;
         this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthEntryPoint = jwtAuthEntryPoint;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
 
@@ -68,6 +72,8 @@ public class SecurityConfig {
 
                         ).permitAll()
                         .anyRequest().authenticated()
+                ).oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler) // Xử lý sau khi login Google
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
