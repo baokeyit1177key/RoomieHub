@@ -59,14 +59,11 @@ public ResponseEntity<?> submitSurvey(@RequestBody SurveyRequest request) {
 
     // GET /api/surveys/me
 @GetMapping("/me")
-public ResponseEntity<?> getMySurvey() {
+public ResponseEntity<SurveyResponse> getMySurvey() {
     SurveyResponse response = surveyService.getSurveyByCurrentUser();
-    if (response == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("error", "Survey chưa tồn tại cho tài khoản hiện tại"));
-    }
     return ResponseEntity.ok(response);
 }
+
 
 // PUT /api/surveys/me
 @PutMapping("/me")

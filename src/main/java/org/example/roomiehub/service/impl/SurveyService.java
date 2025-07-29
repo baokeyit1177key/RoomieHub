@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.dto.request.SurveyRequest;
 import org.example.roomiehub.dto.response.SurveyResponse;
 import org.example.roomiehub.model.SurveyAnswer;
+import org.example.roomiehub.model.User;
 import org.example.roomiehub.repository.SurveyRepository;
+import org.example.roomiehub.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.Optional;
 public class SurveyService {
 
     private final SurveyRepository repository;
+      private final UserRepository userRepository;
 
   public SurveyResponse submitSurvey(SurveyRequest request) {
     String email = getCurrentUserEmail();
@@ -91,11 +94,28 @@ public class SurveyService {
         return false;
     }
 
-    public SurveyResponse getSurveyByCurrentUser() {
+  public SurveyResponse getSurveyByCurrentUser() {
     String email = getCurrentUserEmail();
-    Optional<SurveyAnswer> survey = repository.findByEmail(email);
-    return survey.map(this::mapToResponse).orElse(null);
+    Optional<SurveyAnswer> existingSurvey = repository.findByEmail(email);
+
+    if (existingSurvey.isPresent()) {
+        return mapToResponse(existingSurvey.get());
+    }
+
+    // Tìm User để lấy fullName
+    Optional<User> userOpt = userRepository.findByEmail(email);
+
+    // Tạo mới SurveyAnswer với email và fullName
+    SurveyAnswer newSurvey = new SurveyAnswer();
+    newSurvey.setEmail(email);
+    newSurvey.setUserName(userOpt.map(User::getFullName).orElse("Unknown")); // Gán fullName
+
+    // Các giá trị mặc định khác (nếu cần)
+    repository.save(newSurvey);
+
+    return mapToResponse(newSurvey);
 }
+
 
 public SurveyResponse updateSurveyForCurrentUser(SurveyRequest request) {
     String email = getCurrentUserEmail();
