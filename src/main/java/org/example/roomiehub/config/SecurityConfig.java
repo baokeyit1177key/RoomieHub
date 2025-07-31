@@ -50,28 +50,30 @@ public class SecurityConfig {
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/apartments",
-                                "/api/apartments/count",
-                                "/api/apartments",
-                                "/api/apartment-recommendation",
-                                "/api/auth/**",
-                                "/api/apartments",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/swagger-resources",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/webjars/**",
-                                "/api/test-chatgpt",
-                                "/api/surveys",
-                                "/api/payment/receive-hook"
+    .requestMatchers(
+        "/api/apartments",
+        "/api/apartments/count",
+        "/api/apartment-recommendation",
+        "/api/auth/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html",
+        "/v3/api-docs/**",
+        "/swagger-resources/**",
+        "/swagger-resources",
+        "/configuration/ui",
+        "/configuration/security",
+        "/webjars/**",
+        "/api/test-chatgpt",
+        "/api/surveys",
+        "/api/payment/receive-hook"
+    ).permitAll()
 
+    // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
+    .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        ).permitAll()
-                        .anyRequest().authenticated()
+    // 👇 Các request còn lại cần đăng nhập
+    .anyRequest().authenticated()
+
                 ).oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler) // Xử lý sau khi login Google
                 )

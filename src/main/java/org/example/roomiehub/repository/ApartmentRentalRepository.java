@@ -10,5 +10,7 @@ public interface ApartmentRentalRepository extends JpaRepository<ApartmentRental
     long countByUserId(Long userId);
 
 List<ApartmentRental> findByUserId(Long userId);
+void deleteById(Long id);
+
 
 }
