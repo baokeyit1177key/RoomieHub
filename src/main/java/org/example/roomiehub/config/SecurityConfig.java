@@ -20,6 +20,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -45,42 +48,59 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            CorsConfiguration config = new CorsConfiguration();
+                            config.setAllowedOrigins(List.of("*")); // ⚠️ Khuyên dùng domain cụ thể thay vì "*"
+                            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            config.setAllowedHeaders(List.of("*"));
+                            return config;
+                        })
+                )
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-    .requestMatchers(
-        "/api/apartments",
-        "/api/apartments/count",
-        "/api/apartment-recommendation",
-        "/api/auth/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/v3/api-docs/**",
-        "/swagger-resources/**",
-        "/swagger-resources",
-        "/configuration/ui",
-        "/configuration/security",
-        "/webjars/**",
-        "/api/test-chatgpt",
-        "/api/surveys",
-        "/api/payment/receive-hook"
-    ).permitAll()
+                        .requestMatchers(
+                                "/api/apartments",
+                                "/api/apartments/count",
+                                "/api/apartment-recommendation",
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-resources",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/webjars/**",
+                                "/api/test-chatgpt",
+                                "/api/surveys",
+                                "/api/payment/receive-hook"
+                        ).permitAll()
 
-    // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
-    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-    // 👇 Các request còn lại cần đăng nhập
-    .anyRequest().authenticated()
-
-                ).oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler) // Xử lý sau khi login Google
+                        // 👇 Các request còn lại cần đăng nhập
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .oauth2Login(oauth2 ->
+                        oauth2.successHandler(oAuth2SuccessHandler)
+                )
+                .sessionManagement(sess ->
+                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.authenticationProvider(authenticationProvider());
+
+        return http.build();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
