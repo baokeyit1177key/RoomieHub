@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,6 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
@@ -49,15 +52,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors
-                        .configurationSource(request -> {
-                            CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(List.of("*")); // ⚠️ Khuyên dùng domain cụ thể thay vì "*"
-                            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                            config.setAllowedHeaders(List.of("*"));
-                            return config;
-                        })
-                )
+                .cors(Customizer.withDefaults()) // ✅ dùng CorsConfigurationSource bên ngoài
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
@@ -80,11 +75,7 @@ public class SecurityConfig {
                                 "/api/surveys",
                                 "/api/payment/receive-hook"
                         ).permitAll()
-
-                        // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // 👇 Các request còn lại cần đăng nhập
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 ->
@@ -99,6 +90,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
 
 
@@ -119,5 +111,19 @@ public class SecurityConfig {
         authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173")); // 👈 Cụ thể domain
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // 👈 Quan trọng: Cho phép credentials
+        config.setMaxAge(3600L); // Cache preflight
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
