@@ -46,6 +46,7 @@ public class PayOSServiceImpl implements PayOSService {
                     .orderCode(orderCode)
                     .amount(request.getPackageType().getPrice())
                     .email(email)
+                    .packageType(request.getPackageType().name())
                     .status("PENDING")
                     .build();
             paymentRepository.save(payment);
