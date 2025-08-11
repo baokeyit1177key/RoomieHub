@@ -30,10 +30,13 @@ public class User {
 
     private String password;
 
+    @Column(name = "role")
     private Enums.Role role;
 
     private LocalDate createdDate;
 
+    @Column(name = "provider")
+    private String provider;
 
     @PrePersist
     protected void onCreate() {

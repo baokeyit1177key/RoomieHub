@@ -38,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .provider("WEB") // Hoặc "GOOGLE", "FACEBOOK" tuỳ hệ thống bạn
                 .role(Enums.Role.USER)
                 .build();
 

@@ -12,8 +12,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserPackageInfoResponse    {
-    PackageType packageType;
-    int remainingPosts;
-    boolean isVrSupported;
-    LocalDate expiredAt;
+    private Long packageId;          // ID của gói
+    private String packageName;      // Tên gói
+    private int remainingPosts;      // Số lượt đăng còn lại
+    private LocalDate startDate;     // Ngày bắt đầu
+    private LocalDate expiredAt;
+
+
 }

@@ -65,8 +65,7 @@ public class SecurityConfig {
         "/webjars/**",
         "/api/test-chatgpt",
         "/api/surveys",
-        "/api/payment/receive-hook,",
-                "api/roommate-posts"
+        "/api/payment/receive-hook"
     ).permitAll()
 
     // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
@@ -87,7 +86,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-  // note
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

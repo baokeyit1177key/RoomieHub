@@ -24,10 +24,12 @@ public class RoommatePost {
 
     private long userId;
 
+
     private String ownerPost;
     private String address;
     private double areaSquareMeters;
     private double monthlyRentPrice;
+
 
     // Lưu danh sách ảnh dưới dạng Base64 string
     @ElementCollection(fetch = FetchType.LAZY)

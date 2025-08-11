@@ -45,6 +45,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setFullName(name);
+            newUser.setProvider("GOOGLE"); // Hoặc "FACEBOOK" tuỳ hệ thống bạn`
             newUser.setRole(Enums.Role.USER); // hoặc ROLE_USER tuỳ hệ thống bạn
             return userRepository.save(newUser);
         });

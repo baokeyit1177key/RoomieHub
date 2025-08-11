@@ -22,5 +22,6 @@ public class ApartmentRentalRequest {
     private String elevator;
     private String contact;
     private List<String> imageUrls;  // List URL ảnh
-    private String location;         // Tọa độ dạng "latitude,longitude"
+    private String location;
+    private Long packageId;// Tọa độ dạng "latitude,longitude"
 }
