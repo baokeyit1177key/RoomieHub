@@ -94,23 +94,20 @@ public class ApartmentRentalController {
     }
 
     @GetMapping("/count")
-public ResponseEntity<Long> countAllApartments() {
-    long count = apartmentRentalService.countAllApartments();
-    return ResponseEntity.ok(count);
-}
-@GetMapping("/my/count")
-public ResponseEntity<Long> countMyApartments() {
-    long count = apartmentRentalService.countMyApartments();
-    return ResponseEntity.ok(count);
-}
+    public ResponseEntity<Long> countAllApartments() {
+        long count = apartmentRentalService.countAllApartments();
+        return ResponseEntity.ok(count);
+    }
 
-@GetMapping("/my")
-public ResponseEntity<List<ApartmentRentalResponse>> getMyApartments() {
-    List<ApartmentRentalResponse> list = apartmentRentalService.getMyApartments();
-    return ResponseEntity.ok(list);
-}
+    @GetMapping("/my/count")
+    public ResponseEntity<Long> countMyApartments() {
+        long count = apartmentRentalService.countMyApartments();
+        return ResponseEntity.ok(count);
+    }
 
-
-
-
+    @GetMapping("/my")
+    public ResponseEntity<List<ApartmentRentalResponse>> getMyApartments() {
+        List<ApartmentRentalResponse> list = apartmentRentalService.getMyApartments();
+        return ResponseEntity.ok(list);
+    }
 }

@@ -6,6 +6,7 @@ import org.example.roomiehub.service.impl.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -50,6 +51,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
+
     .requestMatchers(
         "/api/apartments",
         "/api/apartments/count",
@@ -65,10 +67,9 @@ public class SecurityConfig {
         "/webjars/**",
         "/api/test-chatgpt",
         "/api/surveys",
-        "/api/payment/receive-hook",
-           " api/roommate-posts",
-            "/api/roommate-posts"
+        "/api/payment/receive-hook"
     ).permitAll()
+     .requestMatchers(HttpMethod.GET, "/api/roommate-posts").permitAll()
 
     // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
     .requestMatchers("/api/admin/**").hasRole("ADMIN")
