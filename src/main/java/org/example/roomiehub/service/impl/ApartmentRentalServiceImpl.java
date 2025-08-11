@@ -13,7 +13,6 @@ import org.example.roomiehub.repository.ApartmentRentalRepository;
 import org.example.roomiehub.repository.UserPackageRepository;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.ApartmentRentalService;
-import org.example.roomiehub.util.TextUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,22 +35,18 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
         Long userId = getCurrentUserIdByEmail();
         User user = userRepository.findById(userId).orElseThrow();
 
-        // Lấy gói theo packageId và userId
         UserPackage selectedPackage = userPackageRepository
                 .findByIdAndUserIdAndActiveTrue(request.getPackageId(), userId)
                 .orElseThrow(() -> new NoActivePackageException("Không tìm thấy gói hoặc gói đã hết hạn"));
 
-        // Kiểm tra hạn dùng
         if (selectedPackage.getEndDate().isBefore(LocalDate.now())) {
             throw new RuntimeException("Gói này đã hết hạn");
         }
 
-        // Kiểm tra lượt đăng
         if (selectedPackage.getRemainingPosts() <= 0) {
             throw new RuntimeException("Gói này đã hết lượt đăng bài");
         }
 
-        // Trừ lượt
         selectedPackage.setRemainingPosts(selectedPackage.getRemainingPosts() - 1);
         userPackageRepository.save(selectedPackage);
 
@@ -69,7 +64,7 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .interiorCondition(request.getInteriorCondition())
                 .elevator(request.getElevator())
                 .contact(request.getContact())
-                .imageUrls(request.getImageUrls())
+                .imageBase64s(request.getImageBase64s())  // Sửa đây
                 .location(request.getLocation())
                 .userId(userId)
                 .build();
@@ -77,7 +72,6 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
         ApartmentRental savedApartment = repository.save(apartment);
         return mapToResponse(savedApartment);
     }
-
 
     @Override
     public ApartmentRentalResponse getApartmentRentalById(Long id) {
@@ -111,7 +105,7 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
             apartment.setInteriorCondition(request.getInteriorCondition());
             apartment.setElevator(request.getElevator());
             apartment.setContact(request.getContact());
-            apartment.setImageUrls(request.getImageUrls());
+            apartment.setImageBase64s(request.getImageBase64s());  // Sửa đây
             apartment.setLocation(request.getLocation());
 
             ApartmentRental updatedApartment = repository.save(apartment);
@@ -145,13 +139,12 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .interiorCondition(apartment.getInteriorCondition())
                 .elevator(apartment.getElevator())
                 .contact(apartment.getContact())
-                .imageUrls(apartment.getImageUrls())
+                .imageBase64s(apartment.getImageBase64s())  // Sửa đây
                 .location(apartment.getLocation())
                 .userId(apartment.getUserId())
                 .build();
     }
 
-    // Lấy userId bằng email user đang đăng nhập
     public Long getCurrentUserIdByEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -161,48 +154,42 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
     }
 
     @Override
-public List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter) {
-    List<ApartmentRental> apartments = repository.findAll();
+    public List<ApartmentRentalResponse> filterApartments(ApartmentFilterRequest filter) {
+        List<ApartmentRental> apartments = repository.findAll();
 
-    String keyword = filter.getKeyword() != null ? filter.getKeyword().toLowerCase() : null;
-    LevenshteinDistance distanceCalculator = new LevenshteinDistance();
-    int threshold = 3;
+        String keyword = filter.getKeyword() != null ? filter.getKeyword().toLowerCase() : null;
+        LevenshteinDistance distanceCalculator = new LevenshteinDistance();
+        int threshold = 3;
 
-    return apartments.stream()
-            .filter(a -> filter.getMinPrice() == null || a.getPrice() >= filter.getMinPrice())
-            .filter(a -> filter.getMaxPrice() == null || a.getPrice() <= filter.getMaxPrice())
-            .filter(a -> filter.getMinArea() == null || a.getArea() >= filter.getMinArea())
-            .filter(a -> filter.getMaxArea() == null || a.getArea() <= filter.getMaxArea())
+        return apartments.stream()
+                .filter(a -> filter.getMinPrice() == null || a.getPrice() >= filter.getMinPrice())
+                .filter(a -> filter.getMaxPrice() == null || a.getPrice() <= filter.getMaxPrice())
+                .filter(a -> filter.getMinArea() == null || a.getArea() >= filter.getMinArea())
+                .filter(a -> filter.getMaxArea() == null || a.getArea() <= filter.getMaxArea())
+                .filter(a -> isMatch(filter.getGenderRequirement(), a.getGenderRequirement()))
+                .filter(a -> isMatch(filter.getDeposit(), a.getDeposit()))
+                .filter(a -> isMatch(filter.getLegalDocuments(), a.getLegalDocuments()))
+                .filter(a -> isMatch(filter.getUtilities(), a.getUtilities()))
+                .filter(a -> isMatch(filter.getFurniture(), a.getFurniture()))
+                .filter(a -> isMatch(filter.getInteriorCondition(), a.getInteriorCondition()))
+                .filter(a -> isMatch(filter.getElevator(), a.getElevator()))
+                .filter(a -> isMatch(filter.getContact(), a.getContact()))
+                .filter(a -> filter.getAddressKeyword() == null || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
+                .filter(a -> filter.getDescriptionKeyword() == null || a.getDescription().toLowerCase().contains(filter.getDescriptionKeyword().toLowerCase()))
+                .filter(a -> {
+                    if (keyword == null || keyword.isBlank()) return true;
+                    return isFuzzyMatch(a.getTitle(), keyword, distanceCalculator, threshold)
+                            || isFuzzyMatch(a.getDescription(), keyword, distanceCalculator, threshold)
+                            || isFuzzyMatch(a.getAddress(), keyword, distanceCalculator, threshold);
+                })
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 
-            // Lọc theo từng trường
-            .filter(a -> isMatch(filter.getGenderRequirement(), a.getGenderRequirement()))
-            .filter(a -> isMatch(filter.getDeposit(), a.getDeposit()))
-            .filter(a -> isMatch(filter.getLegalDocuments(), a.getLegalDocuments()))
-            .filter(a -> isMatch(filter.getUtilities(), a.getUtilities()))
-            .filter(a -> isMatch(filter.getFurniture(), a.getFurniture()))
-            .filter(a -> isMatch(filter.getInteriorCondition(), a.getInteriorCondition()))
-            .filter(a -> isMatch(filter.getElevator(), a.getElevator()))
-            .filter(a -> isMatch(filter.getContact(), a.getContact()))
-            .filter(a -> filter.getAddressKeyword() == null || a.getAddress().toLowerCase().contains(filter.getAddressKeyword().toLowerCase()))
-            .filter(a -> filter.getDescriptionKeyword() == null || a.getDescription().toLowerCase().contains(filter.getDescriptionKeyword().toLowerCase()))
-
-            // Fuzzy search keyword tổng hợp (nếu có)
-            .filter(a -> {
-                if (keyword == null || keyword.isBlank()) return true;
-                return isFuzzyMatch(a.getTitle(), keyword, distanceCalculator, threshold)
-                        || isFuzzyMatch(a.getDescription(), keyword, distanceCalculator, threshold)
-                        || isFuzzyMatch(a.getAddress(), keyword, distanceCalculator, threshold);
-            })
-
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
-
-private boolean isMatch(String expected, String actual) {
-    return expected == null || expected.isBlank()
-            || (actual != null && actual.toLowerCase().contains(expected.toLowerCase()));
-}
-
+    private boolean isMatch(String expected, String actual) {
+        return expected == null || expected.isBlank()
+                || (actual != null && actual.toLowerCase().contains(expected.toLowerCase()));
+    }
 
     @Override
     public List<ApartmentRentalResponse> searchApartmentsByKeyword(String keyword) {
@@ -214,7 +201,7 @@ private boolean isMatch(String expected, String actual) {
         List<ApartmentRental> apartments = repository.findAll();
 
         LevenshteinDistance distanceCalculator = new LevenshteinDistance();
-        int threshold = 3; // Số ký tự sai lệch cho phép
+        int threshold = 3;
 
         return apartments.stream()
                 .filter(a -> isFuzzyMatch(a.getTitle(), lowerKeyword, distanceCalculator, threshold)
@@ -260,9 +247,8 @@ private boolean isMatch(String expected, String actual) {
                 .collect(Collectors.toList());
     }
 
-    // Hàm tính khoảng cách theo công thức Haversine
     private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Bán kính Trái Đất (km)
+        final int R = 6371;
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
@@ -273,24 +259,22 @@ private boolean isMatch(String expected, String actual) {
     }
 
     @Override
-public long countAllApartments() {
-    return repository.count();
-}
+    public long countAllApartments() {
+        return repository.count();
+    }
 
-@Override
-public long countMyApartments() {
-    Long userId = getCurrentUserIdByEmail();
-    return repository.countByUserId(userId);
-}
+    @Override
+    public long countMyApartments() {
+        Long userId = getCurrentUserIdByEmail();
+        return repository.countByUserId(userId);
+    }
 
-@Override
-public List<ApartmentRentalResponse> getMyApartments() {
-    Long userId = getCurrentUserIdByEmail();
-    List<ApartmentRental> myApartments = repository.findByUserId(userId);
-    return myApartments.stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
-
-
+    @Override
+    public List<ApartmentRentalResponse> getMyApartments() {
+        Long userId = getCurrentUserIdByEmail();
+        List<ApartmentRental> myApartments = repository.findByUserId(userId);
+        return myApartments.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 }

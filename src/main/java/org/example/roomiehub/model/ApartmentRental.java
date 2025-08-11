@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class ApartmentRental {
 
     @Id
@@ -19,7 +20,7 @@ public class ApartmentRental {
 
     private String title;
     private String description;
-    private String address; // Địa chỉ dạng String
+    private String address;
 
     private double price;
     private double area;
@@ -34,11 +35,11 @@ public class ApartmentRental {
     private String contact;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "apartment_images", joinColumns = @JoinColumn(name = "apartment_id"))
-    @Column(name = "image_url")
-    private List<String> imageUrls; // Lưu list ảnh
+    @CollectionTable(name = "apartment_images_base64", joinColumns = @JoinColumn(name = "apartment_id"))
+    @Column(name = "image_base64", columnDefinition = "LONGTEXT")
+    private List<String> imageBase64s; // Lưu list ảnh ba se64
 
-    private long userId; // User đăng tin
+    private long userId;
 
-    private String location; // Lưu tọa độ dạng String: "latitude,longitude"
+    private String location; // "latitude,longitude"
 }
