@@ -172,7 +172,6 @@ public class RoommatePostServiceImpl implements RoommatePostService {
                         .stream()
                         .map(pref -> RoommatePostResponse.RoommatePreferenceResponse.builder()
                                 .id(pref.getId())
-                                .userId(post.getUserId())
                                 .name(pref.getName())
                                 .dateOfBirth(pref.getDateOfBirth())
                                 .gender(pref.getGender())

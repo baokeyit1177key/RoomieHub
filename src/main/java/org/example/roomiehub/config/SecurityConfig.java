@@ -65,7 +65,8 @@ public class SecurityConfig {
         "/webjars/**",
         "/api/test-chatgpt",
         "/api/surveys",
-        "/api/payment/receive-hook"
+        "/api/payment/receive-hook,",
+                "api/roommate-posts"
     ).permitAll()
 
     // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**

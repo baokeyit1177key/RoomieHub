@@ -55,7 +55,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             path.equals("/swagger-ui.html") ||
             path.equals("/") ||
             path.startsWith("/api/test-chatgpt") ||
-          path.equals("/api/payment/receive-hook")
+          path.equals("/api/payment/receive-hook") ||  path.startsWith("/api/roommate-posts")
 
     ) {
 
