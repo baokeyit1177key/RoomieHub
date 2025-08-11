@@ -19,7 +19,7 @@ public class RoommatePostController {
     private final RoommatePostService roommatePostService;
 
     /**
-     * Tạo bài đăng mới cho người dùng hiện tại.
+     * Tạo bài đăng mới cho người dùng hiện tại (ảnh ở dạng Base64).
      */
     @PostMapping
     public ResponseEntity<RoommatePostResponse> createRoommatePost(
@@ -31,7 +31,7 @@ public class RoommatePostController {
     }
 
     /**
-     * Cập nhật bài đăng nếu thuộc về người dùng hiện tại.
+     * Cập nhật bài đăng (ảnh ở dạng Base64) nếu thuộc về người dùng hiện tại.
      */
     @PutMapping("/{id}")
     public ResponseEntity<RoommatePostResponse> updateRoommatePost(
@@ -81,12 +81,11 @@ public class RoommatePostController {
     }
 
     /**
-     * Lọc bài đăng theo tiêu chí tùy chọn (DTO `RoommatePostFilterRequest`)
+     * Lọc bài đăng theo tiêu chí tùy chọn.
      */
-  @PostMapping("/filter")
-public ResponseEntity<List<RoommatePostResponse>> filterRoommatePosts(
-        @RequestBody RoommatePostFilterRequest filterRequest) {
-    return ResponseEntity.ok(roommatePostService.filterRoommatePosts(filterRequest));
-}
-
+    @PostMapping("/filter")
+    public ResponseEntity<List<RoommatePostResponse>> filterRoommatePosts(
+            @RequestBody RoommatePostFilterRequest filterRequest) {
+        return ResponseEntity.ok(roommatePostService.filterRoommatePosts(filterRequest));
+    }
 }
