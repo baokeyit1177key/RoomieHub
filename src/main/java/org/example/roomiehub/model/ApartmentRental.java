@@ -37,7 +37,7 @@ public class ApartmentRental {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "apartment_images_base64", joinColumns = @JoinColumn(name = "apartment_id"))
     @Column(name = "image_base64", columnDefinition = "LONGTEXT")
-    private List<String> imageBase64s; // Lưu list ảnh base64
+    private List<String> imageBase64s; // Lưu list ảnh ba se64
 
     private long userId;
 
