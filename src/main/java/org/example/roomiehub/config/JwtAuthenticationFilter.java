@@ -40,7 +40,11 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
 
     // Các API public, không yêu cầu token
     if ("GET".equalsIgnoreCase(method) &&
-            (path.equals("/api/apartments") || path.equals("/api/apartments/count") || path.equals("/api/apartments/create") || path.equals("/api/payment/receive-hook"))) {
+            (path.equals("/api/apartments") ||
+                    path.equals("/api/apartments/count") ||
+                    path.equals("/api/apartments/create") ||
+                    path.equals("/api/payment/receive-hook") ||
+                    path.startsWith("/api/roommate-posts/") || path.equals("/api/roommate-posts"))) {
         System.out.println(">>> [JwtFilter] Public GET path - skipping auth: " + path);
         filterChain.doFilter(request, response);
         return;

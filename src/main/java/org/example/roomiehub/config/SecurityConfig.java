@@ -1,5 +1,6 @@
 package org.example.roomiehub.config;
 
+import io.netty.handler.codec.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.impl.CustomUserDetailsService;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -58,6 +60,8 @@ public class SecurityConfig {
                         exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(new AntPathRequestMatcher("/api/roommate-posts/**", "GET")).permitAll()
+
                         .requestMatchers(
                                 "/api/apartments",
                                 "/api/apartments/count",
@@ -74,6 +78,7 @@ public class SecurityConfig {
                                 "/api/test-chatgpt",
                                 "/api/surveys",
                                 "/api/payment/receive-hook"
+
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
