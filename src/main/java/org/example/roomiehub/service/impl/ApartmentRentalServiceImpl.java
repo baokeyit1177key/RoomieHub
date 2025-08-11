@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +35,25 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
     public ApartmentRentalResponse createApartmentRental(ApartmentRentalRequest request) {
         Long userId = getCurrentUserIdByEmail();
         User user = userRepository.findById(userId).orElseThrow();
+
+        // Lấy gói theo packageId và userId
+        UserPackage selectedPackage = userPackageRepository
+                .findByIdAndUserIdAndActiveTrue(request.getPackageId(), userId)
+                .orElseThrow(() -> new NoActivePackageException("Không tìm thấy gói hoặc gói đã hết hạn"));
+
+        // Kiểm tra hạn dùng
+        if (selectedPackage.getEndDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Gói này đã hết hạn");
+        }
+
+        // Kiểm tra lượt đăng
+        if (selectedPackage.getRemainingPosts() <= 0) {
+            throw new RuntimeException("Gói này đã hết lượt đăng bài");
+        }
+
+        // Trừ lượt
+        selectedPackage.setRemainingPosts(selectedPackage.getRemainingPosts() - 1);
+        userPackageRepository.save(selectedPackage);
 
         ApartmentRental apartment = ApartmentRental.builder()
                 .title(request.getTitle())
@@ -53,19 +73,11 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .location(request.getLocation())
                 .userId(userId)
                 .build();
-        UserPackage activePackage = userPackageRepository
-                .findFirstByUserIdAndActiveTrueOrderByEndDateDesc(userId)
-                .orElseThrow(() -> new NoActivePackageException("Bạn chưa có gói đăng bài hợp lệ"));
-
-        if (activePackage.getRemainingPosts() <= 0) {
-            throw new RuntimeException("Bạn đã hết lượt đăng bài.");
-        }
-        activePackage.setRemainingPosts(activePackage.getRemainingPosts() - 1);
-        userPackageRepository.save(activePackage);
 
         ApartmentRental savedApartment = repository.save(apartment);
         return mapToResponse(savedApartment);
     }
+
 
     @Override
     public ApartmentRentalResponse getApartmentRentalById(Long id) {
@@ -140,7 +152,7 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
     }
 
     // Lấy userId bằng email user đang đăng nhập
-    private Long getCurrentUserIdByEmail() {
+    public Long getCurrentUserIdByEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)

@@ -17,14 +17,18 @@ public class UserServiceImpl implements UserService {
     public UserPackageInfoResponse getCurrentUserPackageInfo(Long userId) {
         UserPackage activePackage = userPackageRepository
                 .findFirstByUserIdAndActiveTrueOrderByEndDateDesc(userId)
-                .orElse(null);
+                .orElseThrow(() -> new NoActivePackageException("Bạn chưa có gói nào đang hoạt động"));
 
         return new UserPackageInfoResponse(
-                activePackage.getPackageType(),
+                activePackage.getId(),
+                activePackage.getPackageType().name(), // tên gói
                 activePackage.getRemainingPosts(),
-                activePackage.isVrSupported(),
+                activePackage.getStartDate(),
                 activePackage.getEndDate()
         );
     }
+
+
+
 
 }

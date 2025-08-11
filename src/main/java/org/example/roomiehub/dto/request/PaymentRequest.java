@@ -5,7 +5,6 @@ import org.example.roomiehub.Enum.PackageType;
 
 @Data
 public class PaymentRequest {
-    private long orderCode;
     private PackageType packageType;
     private String description;
 }

@@ -32,14 +32,21 @@ public class PayOSServiceImpl implements PayOSService {
     private final UserRepository userRepository;
     private final UserPackageRepository userPackageRepository;
 
+    // Hàm tạo orderCode tự động (timestamp + số random)
+    private long generateOrderCode() {
+        return System.currentTimeMillis();
+    }
+
     @Override
     public CheckoutResponseData createPayment(PaymentRequest request, String email) {
         try {
-            Long orderCode = request.getOrderCode();
+            long orderCode = generateOrderCode();
+
             Payment payment = Payment.builder()
                     .orderCode(orderCode)
                     .amount(request.getPackageType().getPrice())
                     .email(email)
+                    .packageType(request.getPackageType().name())
                     .status("PENDING")
                     .build();
             paymentRepository.save(payment);
@@ -51,7 +58,7 @@ public class PayOSServiceImpl implements PayOSService {
                     .build();
 
             PaymentData paymentData = PaymentData.builder()
-                    .orderCode(request.getOrderCode())
+                    .orderCode(orderCode)
                     .amount(request.getPackageType().getPrice())
                     .description(request.getDescription())
                     .cancelUrl("https://roomiehub.vn/payment/cancel")
@@ -92,8 +99,6 @@ public class PayOSServiceImpl implements PayOSService {
         });
     }
 
-
-
     public String getEmailByOrderCode(Long orderCode) {
         return paymentRepository.findByOrderCode(orderCode)
                 .map(Payment::getEmail)
@@ -105,9 +110,9 @@ public class PayOSServiceImpl implements PayOSService {
         WebhookData data = webhook.getData();
         Long orderCode = data.getOrderCode();
 
-        String desc = webhook.getDesc(); // mô tả lỗi hoặc lý do
-        String code = webhook.getCode(); // mã code của kết quả
-        Boolean success = webhook.getSuccess(); // true/false
+        String desc = webhook.getDesc();
+        String code = webhook.getCode();
+        Boolean success = webhook.getSuccess();
 
         if (desc != null && desc.toLowerCase().contains("hết hạn")) {
             paymentRepository.findByOrderCode(orderCode).ifPresent(payment -> {
@@ -144,14 +149,13 @@ public class PayOSServiceImpl implements PayOSService {
                             .isVrSupported(isVr)
                             .active(true)
                             .startDate(LocalDate.now())
-                            .endDate(LocalDate.now().plusMonths(1)) // giả sử gói có hạn 30 ngày
+                            .endDate(LocalDate.now().plusMonths(1))
                             .build();
 
                     userPackageRepository.save(userPackage);
                 });
             });
-        }
-        else {
+        } else {
             paymentRepository.findByOrderCode(orderCode).ifPresent(payment -> {
                 payment.setStatus("FAILED");
                 paymentRepository.save(payment);
@@ -166,6 +170,4 @@ public class PayOSServiceImpl implements PayOSService {
         }
         throw new IllegalArgumentException("Không tìm thấy gói với giá tiền: " + amount);
     }
-
-
 }

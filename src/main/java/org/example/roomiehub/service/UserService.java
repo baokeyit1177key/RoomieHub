@@ -5,4 +5,5 @@ import org.example.roomiehub.model.UserPackage;
 
 public interface UserService {
     UserPackageInfoResponse getCurrentUserPackageInfo(Long userId);
+
 }
