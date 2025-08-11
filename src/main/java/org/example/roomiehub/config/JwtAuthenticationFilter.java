@@ -43,8 +43,8 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             (path.equals("/api/apartments") ||
                     path.equals("/api/apartments/count") ||
                     path.equals("/api/apartments/create") ||
-                    path.equals("/api/payment/receive-hook") ||
-                    path.startsWith("/api/roommate-posts/") || path.equals("/api/roommate-posts"))) {
+                    path.equals("/api/payment/receive-hook")
+                    )) {
         System.out.println(">>> [JwtFilter] Public GET path - skipping auth: " + path);
         filterChain.doFilter(request, response);
         return;
@@ -59,7 +59,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             path.equals("/swagger-ui.html") ||
             path.equals("/") ||
             path.startsWith("/api/test-chatgpt") ||
-          path.equals("/api/payment/receive-hook") ||  path.startsWith("/api/roommate-posts")
+          path.equals("/api/payment/receive-hook")
 
     ) {
 
