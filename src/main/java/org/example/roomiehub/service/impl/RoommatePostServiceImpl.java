@@ -6,6 +6,7 @@ import org.example.roomiehub.dto.request.RoommatePostRequest;
 import org.example.roomiehub.dto.response.RoommatePostResponse;
 import org.example.roomiehub.model.RoommatePost;
 import org.example.roomiehub.model.RoommatePreference;
+import org.example.roomiehub.model.User;
 import org.example.roomiehub.repository.RoommatePostRepository;
 import org.example.roomiehub.repository.RoommatePreferenceRepository;
 import org.example.roomiehub.repository.UserRepository;
@@ -32,16 +33,17 @@ public class RoommatePostServiceImpl implements RoommatePostService {
     @Override
     @Transactional
     public RoommatePostResponse createRoommatePost(RoommatePostRequest request, String userEmail) {
-        userRepo.findByEmail(userEmail)
+        User user = userRepo.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + userEmail));
 
         RoommatePost post = RoommatePost.builder()
+                .userId(user.getId())
                 .ownerPost(userEmail)
                 .address(request.getAddress())
                 .areaSquareMeters(request.getAreaSquareMeters())
                 .monthlyRentPrice(request.getMonthlyRentPrice())
                 .description(request.getDescription())
-                .imageUrls(request.getImageUrls())
+                .imageBase64List(request.getImageBase64List())
                 .build();
 
         RoommatePost savedPost = postRepo.save(post);
@@ -92,16 +94,16 @@ public class RoommatePostServiceImpl implements RoommatePostService {
                 .collect(Collectors.toList());
     }
 
-
-
-
     @Override
     @Transactional
     public RoommatePostResponse updateRoommatePost(Long id, RoommatePostRequest request, String userEmail) {
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + userEmail));
+
         RoommatePost post = postRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("RoommatePost not found with id: " + id));
 
-        if (!post.getOwnerPost().equals(userEmail)) {
+        if (post.getUserId() != user.getId()) {
             throw new SecurityException("You are not authorized to update this post");
         }
 
@@ -109,7 +111,7 @@ public class RoommatePostServiceImpl implements RoommatePostService {
         post.setAreaSquareMeters(request.getAreaSquareMeters());
         post.setMonthlyRentPrice(request.getMonthlyRentPrice());
         post.setDescription(request.getDescription());
-        post.setImageUrls(request.getImageUrls());
+        post.setImageBase64List(request.getImageBase64List());
 
         prefRepo.deleteByRoommatePostId(id);
 
@@ -139,10 +141,13 @@ public class RoommatePostServiceImpl implements RoommatePostService {
     @Override
     @Transactional
     public void deleteRoommatePost(Long id, String userEmail) {
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + userEmail));
+
         RoommatePost post = postRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("RoommatePost not found with id: " + id));
 
-        if (!post.getOwnerPost().equals(userEmail)) {
+        if (post.getUserId() != user.getId()) {
             throw new SecurityException("You are not authorized to delete this post");
         }
 
@@ -150,74 +155,78 @@ public class RoommatePostServiceImpl implements RoommatePostService {
     }
 
     private RoommatePostResponse mapToResponse(RoommatePost post) {
-        RoommatePostResponse response = new RoommatePostResponse();
-        response.setId(post.getId());
-        response.setOwnerPost(post.getOwnerPost());
-        response.setAddress(post.getAddress());
-        response.setAreaSquareMeters(post.getAreaSquareMeters());
-        response.setMonthlyRentPrice(post.getMonthlyRentPrice());
-        response.setDescription(post.getDescription());
-        response.setCreatedDate(post.getCreatedDate());
-        response.setImageUrls(post.getImageUrls());
+        RoommatePostResponse response = RoommatePostResponse.builder()
+                .id(post.getId())
+                .userId(post.getUserId())
+                .ownerPost(post.getOwnerPost())
+                .address(post.getAddress())
+                .areaSquareMeters(post.getAreaSquareMeters())
+                .monthlyRentPrice(post.getMonthlyRentPrice())
+                .description(post.getDescription())
+                .createdDate(post.getCreatedDate())
+                .imageBase64List(post.getImageBase64List())
+                .build();
 
-        List<RoommatePostResponse.RoommatePreferenceResponse> preferences = prefRepo.findByRoommatePostId(post.getId())
-                .stream()
-                .map(pref -> new RoommatePostResponse.RoommatePreferenceResponse(
-                        pref.getId(),
-                        pref.getName(),
-                        pref.getDateOfBirth(),
-                        pref.getGender(),
-                        pref.getOccupation(),
-                        pref.getDescription(),
-                        pref.getPreferredPersonality(),
-                        pref.getCanCook(),
-                        pref.getIsNightOwl(),
-                        pref.getHasPet(),
-                        pref.getSmokes(),
-                        pref.getOftenBringsFriendsOver()
-                ))
-                .collect(Collectors.toList());
+        List<RoommatePostResponse.RoommatePreferenceResponse> preferences =
+                prefRepo.findByRoommatePostId(post.getId())
+                        .stream()
+                        .map(pref -> RoommatePostResponse.RoommatePreferenceResponse.builder()
+                                .id(pref.getId())
+                                .userId(post.getUserId())
+                                .name(pref.getName())
+                                .dateOfBirth(pref.getDateOfBirth())
+                                .gender(pref.getGender())
+                                .occupation(pref.getOccupation())
+                                .description(pref.getDescription())
+                                .preferredPersonality(pref.getPreferredPersonality())
+                                .canCook(pref.getCanCook())
+                                .isNightOwl(pref.getIsNightOwl())
+                                .hasPet(pref.getHasPet())
+                                .smokes(pref.getSmokes())
+                                .oftenBringsFriendsOver(pref.getOftenBringsFriendsOver())
+                                .build())
+                        .collect(Collectors.toList());
 
         response.setRoommatePreferences(preferences);
         return response;
     }
 
     @Override
-public List<RoommatePostResponse> filterRoommatePosts(RoommatePostFilterRequest filterRequest) {
-    return postRepo.findAll()
-            .stream()
-            .filter(post -> {
-                boolean matchesPost = (filterRequest.getAddress() == null ||
-                        post.getAddress().toLowerCase().contains(filterRequest.getAddress().toLowerCase())) &&
-                        (filterRequest.getMinArea() == null ||
-                        post.getAreaSquareMeters() >= filterRequest.getMinArea()) &&
-                        (filterRequest.getMaxPrice() == null ||
-                        post.getMonthlyRentPrice() <= filterRequest.getMaxPrice());
+    public List<RoommatePostResponse> filterRoommatePosts(RoommatePostFilterRequest filterRequest) {
+        return postRepo.findAll()
+                .stream()
+                .filter(post -> {
+                    boolean matchesPost = (filterRequest.getAddress() == null ||
+                            post.getAddress().toLowerCase().contains(filterRequest.getAddress().toLowerCase())) &&
+                            (filterRequest.getMinArea() == null ||
+                                    post.getAreaSquareMeters() >= filterRequest.getMinArea()) &&
+                            (filterRequest.getMaxPrice() == null ||
+                                    post.getMonthlyRentPrice() <= filterRequest.getMaxPrice());
 
-                if (!matchesPost) return false;
+                    if (!matchesPost) return false;
 
-                return post.getRoommatePreferences().stream().anyMatch(pref ->
-                        (filterRequest.getDob() == null ||
-                        pref.getDateOfBirth().equals(filterRequest.getDob())) &&
-                        (filterRequest.getGender() == null ||
-                        pref.getGender() == filterRequest.getGender()) &&
-                        (filterRequest.getOccupation() == null ||
-                        pref.getOccupation().toLowerCase().contains(filterRequest.getOccupation().toLowerCase())) &&
-                        (filterRequest.getPersonality() == null ||
-                        pref.getPreferredPersonality() == filterRequest.getPersonality()) &&
-                        (filterRequest.getCanCook() == null ||
-                        pref.getCanCook() == filterRequest.getCanCook()) &&
-                        (filterRequest.getIsNightOwl() == null ||
-                        pref.getIsNightOwl() == filterRequest.getIsNightOwl()) &&
-                        (filterRequest.getHasPet() == null ||
-                        pref.getHasPet() == filterRequest.getHasPet()) &&
-                        (filterRequest.getSmokes() == null ||
-                        pref.getSmokes() == filterRequest.getSmokes()) &&
-                        (filterRequest.getBringsFriends() == null ||
-                        pref.getOftenBringsFriendsOver() == filterRequest.getBringsFriends())
-                );
-            })
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
+                    return post.getRoommatePreferences().stream().anyMatch(pref ->
+                            (filterRequest.getDob() == null ||
+                                    pref.getDateOfBirth().equals(filterRequest.getDob())) &&
+                                    (filterRequest.getGender() == null ||
+                                            pref.getGender() == filterRequest.getGender()) &&
+                                    (filterRequest.getOccupation() == null ||
+                                            pref.getOccupation().toLowerCase().contains(filterRequest.getOccupation().toLowerCase())) &&
+                                    (filterRequest.getPersonality() == null ||
+                                            pref.getPreferredPersonality() == filterRequest.getPersonality()) &&
+                                    (filterRequest.getCanCook() == null ||
+                                            pref.getCanCook() == filterRequest.getCanCook()) &&
+                                    (filterRequest.getIsNightOwl() == null ||
+                                            pref.getIsNightOwl() == filterRequest.getIsNightOwl()) &&
+                                    (filterRequest.getHasPet() == null ||
+                                            pref.getHasPet() == filterRequest.getHasPet()) &&
+                                    (filterRequest.getSmokes() == null ||
+                                            pref.getSmokes() == filterRequest.getSmokes()) &&
+                                    (filterRequest.getBringsFriends() == null ||
+                                            pref.getOftenBringsFriendsOver() == filterRequest.getBringsFriends())
+                    );
+                })
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 }

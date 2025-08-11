@@ -1,6 +1,6 @@
 package org.example.roomiehub.model;
 
-import jakarta.persistence.*; // Annotation của JPA để ánh xạ Entity với DB
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,36 +17,38 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class RoommatePost {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // ID duy nhất của bài đăng
+    private Long id;
+
+    private long userId;
 
     private String ownerPost;
+    private String address;
+    private double areaSquareMeters;
+    private double monthlyRentPrice;
 
-    private String address; // Địa chỉ của căn nhà
-    private double areaSquareMeters; // Diện tích căn nhà (m2)
-    private double monthlyRentPrice; // Giá thuê hàng tháng
+    // Lưu danh sách ảnh dưới dạng Base64 string
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "roommate_post_images", joinColumns = @JoinColumn(name = "roommate_post_id"))
+    @Column(name = "image_base64", columnDefinition = "LONGTEXT") // LONGTEXT để chứa Base64 dài
+    private List<String> imageBase64List = new ArrayList<>();
 
-    @ElementCollection
-@CollectionTable(name = "roommate_post_images", joinColumns = @JoinColumn(name = "roommate_post_id"))
-@Column(name = "image_url")
-private List<String> imageUrls = new ArrayList<>();
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-    @Column(columnDefinition = "TEXT") // Kiểu TEXT trong DB cho mô tả dài
-    private String description; // Mô tả chi tiết về căn nhà
+    @OneToMany(mappedBy = "roommatePost",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<RoommatePreference> roommatePreferences = new ArrayList<>();
 
+    private LocalDate createdDate;
 
-    @OneToMany(mappedBy = "roommatePost", // Mối quan hệ một-đến-nhiều với RoommatePreference
-               cascade = CascadeType.ALL, // Mọi thao tác trên RoommatePost sẽ áp dụng cho RoommatePreference liên quan
-               orphanRemoval = true)      // Tự động xóa RoommatePreference nếu nó bị gỡ khỏi danh sách
-    private List<RoommatePreference> roommatePreferences = new ArrayList<>(); // Danh sách các yêu cầu về bạn cùng phòng
-
-    private LocalDate createdDate; // Ngày bài đăng được tạo
-
-    @PrePersist // Phương thức này được gọi trước khi Entity được lưu lần đầu
+    @PrePersist
     protected void onCreate() {
         if (this.createdDate == null) {
-            this.createdDate = LocalDate.now(); // Gán ngày hiện tại
+            this.createdDate = LocalDate.now();
         }
     }
 }

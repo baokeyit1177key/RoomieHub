@@ -1,6 +1,7 @@
 package org.example.roomiehub.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.roomiehub.Enum.Enums;
@@ -10,7 +11,7 @@ import org.example.roomiehub.Enum.YesNoAnswer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,16 +22,19 @@ public class RoommatePostResponse {
     private double areaSquareMeters;
     private double monthlyRentPrice;
     private String description;
-    private List<String> imageUrls;
 
-    private Long userId; // Chỉ trả về ID của user để tránh tải toàn bộ đối tượng User
+    // Ảnh trả về dạng Base64
+    private List<String> imageBase64List = new ArrayList<>();
+
+    private Long userId;
     private List<RoommatePreferenceResponse> roommatePreferences = new ArrayList<>();
     private LocalDate createdDate;
-
+    @Builder
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RoommatePreferenceResponse {
+        private long userId;
         private Long id;
         private String name;
         private LocalDate dateOfBirth;
