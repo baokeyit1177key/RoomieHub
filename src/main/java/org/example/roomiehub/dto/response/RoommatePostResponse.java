@@ -34,7 +34,6 @@ public class RoommatePostResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RoommatePreferenceResponse {
-        private long userId;
         private Long id;
         private String name;
         private LocalDate dateOfBirth;

@@ -30,7 +30,6 @@ public class RoommatePostRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RoommatePreferenceRequest {
-        private long userId;
         private String name;
         private LocalDate dateOfBirth;
         private Enums.Gender gender;
