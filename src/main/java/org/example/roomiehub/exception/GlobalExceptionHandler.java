@@ -5,6 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -27,4 +30,11 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("NO_ACTIVE_PACKAGE", ex.getMessage()));
     }
 
+    @ExceptionHandler(OutOfPostQuotaException.class)
+    public ResponseEntity<?> handleOutOfPostQuotaException(OutOfPostQuotaException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "OutOfPostQuota");
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST); // 400
+    }
 }
