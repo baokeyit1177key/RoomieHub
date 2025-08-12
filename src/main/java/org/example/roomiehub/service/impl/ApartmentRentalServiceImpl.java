@@ -1,5 +1,6 @@
 package org.example.roomiehub.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.example.roomiehub.dto.request.ApartmentFilterRequest;
@@ -8,17 +9,21 @@ import org.example.roomiehub.dto.response.ApartmentRentalResponse;
 import org.example.roomiehub.exception.NoActivePackageException;
 import org.example.roomiehub.exception.OutOfPostQuotaException;
 import org.example.roomiehub.model.ApartmentRental;
+import org.example.roomiehub.model.SurveyAnswer;
 import org.example.roomiehub.model.User;
 import org.example.roomiehub.model.UserPackage;
 import org.example.roomiehub.repository.ApartmentRentalRepository;
+import org.example.roomiehub.repository.SurveyRepository;
 import org.example.roomiehub.repository.UserPackageRepository;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.ApartmentRentalService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +35,8 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
     private final ApartmentRentalRepository repository;
     private final UserRepository userRepository;
     private final UserPackageRepository userPackageRepository;
+    private final ApartmentRentalRepository apartmentRentalRepository;
+    private final SurveyRepository surveyRepository;
 
     @Override
     public ApartmentRentalResponse createApartmentRental(ApartmentRentalRequest request) {
@@ -278,4 +285,80 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
+       @Override
+public List<ApartmentRentalResponse> findMatchingApartmentsForLoggedInUser() {
+    // 1) Lấy email user đang login
+    String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    if (email == null || email.isBlank()) {
+        throw new RuntimeException("No authenticated user found");
+    }
+
+    // 2) Lấy survey theo email
+    SurveyAnswer survey = surveyRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Survey not found for email: " + email));
+
+    // 3) Các tham số user (có thể null)
+    Double userPrice = survey.getPrice();    // có thể null
+    Double userArea  = survey.getArea();     // có thể null
+    org.example.roomiehub.Enum.Enums.Gender userGender = survey.getGender(); // có thể null
+    String userLocation = survey.getLocation(); // có thể null hoặc "Vinhome, Quận 9, TP.HCM"
+
+    // 4) Lấy danh sách căn hộ (cơ bản). Nếu dữ liệu lớn thì sau này nên push filter xuống DB bằng query.
+    List<ApartmentRental> all = repository.findAll();
+
+    // 5) Filter theo price / area / gender (address tách ra xử lý riêng)
+    List<ApartmentRental> baseFiltered = all.stream()
+            .filter(a -> {
+                // price filter: nếu userPrice == null => cho qua
+                if (userPrice != null) {
+                    if (!(Math.abs(a.getPrice() - userPrice) <= 5_000_000)) return false;
+                }
+                // area filter
+                if (userArea != null) {
+                    if (!(Math.abs(a.getArea() - userArea) <= 5.0)) return false;
+                }
+                // gender filter: nếu userGender == null => cho qua
+                if (userGender != null) {
+                    String aptGenderReq = a.getGenderRequirement();
+                    if (aptGenderReq == null || !aptGenderReq.toLowerCase().contains(userGender.name().toLowerCase())) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+
+    // 6) Nếu userLocation có giá trị thì thử lọc thêm theo địa chỉ (tách keyword bằng dấu phẩy)
+    if (userLocation != null && !userLocation.trim().isEmpty()) {
+        List<String> keywords = Arrays.stream(userLocation.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+
+        if (!keywords.isEmpty()) {
+            List<ApartmentRental> addressMatched = baseFiltered.stream()
+                    .filter(a -> {
+                        String aptAddress = a.getAddress() != null ? a.getAddress().toLowerCase() : "";
+                        // tất cả keywords phải tồn tại trong address
+                        return keywords.stream().allMatch(aptAddress::contains);
+                    })
+                    .collect(Collectors.toList());
+
+            // nếu có kết quả khớp address -> trả về kết quả đó
+            if (!addressMatched.isEmpty()) {
+                return addressMatched.stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
+            }
+            // nếu addressMatched rỗng -> bỏ qua điều kiện địa chỉ, trả baseFiltered bên dưới
+        }
+    }
+
+    // 7) Trường hợp không có location hoặc không có kết quả match theo address -> trả baseFiltered
+    return baseFiltered.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
 }

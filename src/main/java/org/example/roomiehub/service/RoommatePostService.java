@@ -43,5 +43,6 @@ public interface RoommatePostService {
      */
     List<RoommatePostResponse> filterRoommatePosts(RoommatePostFilterRequest filterRequest);
 
+      List<RoommatePostResponse> recommendRoommatePosts(String userEmail);
 
 }

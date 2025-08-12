@@ -3,6 +3,7 @@ package org.example.roomiehub.service;
 import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
+import org.example.roomiehub.dto.response.SurveyResponse;
 
 import java.util.List;
 
@@ -30,5 +31,6 @@ long countMyApartments();
 
 List<ApartmentRentalResponse> getMyApartments();
 
+List<ApartmentRentalResponse> findMatchingApartmentsForLoggedInUser();
 
 }
