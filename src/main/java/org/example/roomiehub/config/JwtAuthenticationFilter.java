@@ -126,7 +126,6 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
                                             .bearerFormat("JWT")
                             ))
                     .servers(List.of(
-                            new Server().url("https://roomiehub-production.up.railway.app"),
                             new Server().url("http://localhost:8080"),
                             new Server().url("http://localhost:5173")
                     ));
