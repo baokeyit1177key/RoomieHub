@@ -1,15 +1,16 @@
 package org.example.roomiehub.config;
 
+import io.netty.handler.codec.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.impl.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,6 +22,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -46,44 +53,52 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
+                .cors(Customizer.withDefaults()) // ✅ dùng CorsConfigurationSource bên ngoài
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(jwtAuthEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(new AntPathRequestMatcher("/api/roommate-posts/**", "GET")).permitAll()
 
-    .requestMatchers(
-        "/api/apartments",
-        "/api/apartments/count",
-        "/api/apartment-recommendation",
-        "/api/auth/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/v3/api-docs/**",
-        "/swagger-resources/**",
-        "/swagger-resources",
-        "/configuration/ui",
-        "/configuration/security",
-        "/webjars/**",
-        "/api/test-chatgpt",
-        "/api/surveys",
-        "/api/payment/receive-hook"
-    ).permitAll()
-     .requestMatchers(HttpMethod.GET, "/api/roommate-posts").permitAll()
+                        .requestMatchers(
+                                "/api/apartments",
+                                "/api/apartments/count",
+                                "/api/apartment-recommendation",
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-resources",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/webjars/**",
+                                "/api/test-chatgpt",
+                                "/api/surveys",
+                                "/api/payment/receive-hook",
+                                "/api/roommate-posts"
 
-    // 👇 GIỚI HẠN QUYỀN ADMIN CHO CỤM /api/admin/**
-    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-    // 👇 Các request còn lại cần đăng nhập
-    .anyRequest().authenticated()
-
-                ).oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler) // Xử lý sau khi login Google
+                        ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .oauth2Login(oauth2 ->
+                        oauth2.successHandler(oAuth2SuccessHandler)
+                )
+                .sessionManagement(sess ->
+                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.authenticationProvider(authenticationProvider());
+
+        return http.build();
     }
+
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -102,5 +117,19 @@ public class SecurityConfig {
         authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173")); // 👈 Cụ thể domain
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // 👈 Quan trọng: Cho phép credentials
+        config.setMaxAge(3600L); // Cache preflight
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
