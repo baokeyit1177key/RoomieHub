@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OutOfPostQuotaException.class)
     public ResponseEntity<?> handleOutOfPostQuotaException(OutOfPostQuotaException ex) {
         Map<String, Object> body = new HashMap<>();
-        body.put("error", "OutOfPostQuota");
+        body.put("error", "Out of post quota");
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST); // 400
     }
