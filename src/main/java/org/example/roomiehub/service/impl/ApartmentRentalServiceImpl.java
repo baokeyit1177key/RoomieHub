@@ -7,6 +7,7 @@ import org.example.roomiehub.dto.request.ApartmentFilterRequest;
 import org.example.roomiehub.dto.request.ApartmentRentalRequest;
 import org.example.roomiehub.dto.response.ApartmentRentalResponse;
 import org.example.roomiehub.exception.NoActivePackageException;
+import org.example.roomiehub.exception.OutOfPostQuotaException;
 import org.example.roomiehub.model.ApartmentRental;
 import org.example.roomiehub.model.SurveyAnswer;
 import org.example.roomiehub.model.User;
@@ -51,7 +52,7 @@ public class ApartmentRentalServiceImpl implements ApartmentRentalService {
         }
 
         if (selectedPackage.getRemainingPosts() <= 0) {
-            throw new RuntimeException("Gói này đã hết lượt đăng bài");
+            throw new OutOfPostQuotaException("Gói này đã hết lượt đăng bài");
         }
 
         selectedPackage.setRemainingPosts(selectedPackage.getRemainingPosts() - 1);
