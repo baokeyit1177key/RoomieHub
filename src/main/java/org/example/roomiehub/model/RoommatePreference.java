@@ -23,6 +23,7 @@ import java.time.LocalDate;
     private Long id; // ID duy nhất của yêu cầu bạn cùng phòng
 
     private String name; // Tên của người tìm phòng (hoặc tên đại diện)
+
     private LocalDate dateOfBirth; // Năm sinh của người tìm phòng
 
     @Enumerated(EnumType.STRING) // Lưu Enum dưới dạng chuỗi trong DB
