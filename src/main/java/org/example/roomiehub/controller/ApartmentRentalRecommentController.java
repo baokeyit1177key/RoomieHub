@@ -1,10 +1,12 @@
 package org.example.roomiehub.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.roomiehub.service.ApartmentRentalRecommentService;
-import org.springframework.http.HttpStatus;
+import org.example.roomiehub.dto.response.ApartmentRentalResponse;
+import org.example.roomiehub.service.ApartmentRentalService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -13,17 +15,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApartmentRentalRecommentController {
 
-    private final ApartmentRentalRecommentService apartmentRentalRecommentService;
+    private final ApartmentRentalService apartmentRentalService;
 
-    @GetMapping("/suggestions")
-    public ResponseEntity<?> recommendApartmentsForLoggedUser() {
-        List<Long> recommendedApartmentIds = apartmentRentalRecommentService.recommendApartmentIdsForLoggedUser();
-
-        if (recommendedApartmentIds.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Không có căn hộ phù hợp với yêu cầu của bạn!");
-        }
-
-        return ResponseEntity.ok(recommendedApartmentIds);
+    @GetMapping("/matching")
+    public ResponseEntity<List<ApartmentRentalResponse>> getMatchingApartmentsForUser() {
+        List<ApartmentRentalResponse> matchedApartments = apartmentRentalService.findMatchingApartmentsForLoggedInUser();
+        return ResponseEntity.ok(matchedApartments);
     }
 }

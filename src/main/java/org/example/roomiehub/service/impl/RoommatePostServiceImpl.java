@@ -1,14 +1,17 @@
 package org.example.roomiehub.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.example.roomiehub.Enum.Enums;
 import org.example.roomiehub.dto.request.RoommatePostFilterRequest;
 import org.example.roomiehub.dto.request.RoommatePostRequest;
 import org.example.roomiehub.dto.response.RoommatePostResponse;
 import org.example.roomiehub.model.RoommatePost;
 import org.example.roomiehub.model.RoommatePreference;
+import org.example.roomiehub.model.SurveyAnswer;
 import org.example.roomiehub.model.User;
 import org.example.roomiehub.repository.RoommatePostRepository;
 import org.example.roomiehub.repository.RoommatePreferenceRepository;
+import org.example.roomiehub.repository.SurveyRepository;
 import org.example.roomiehub.repository.UserRepository;
 import org.example.roomiehub.service.RoommatePostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,8 @@ public class RoommatePostServiceImpl implements RoommatePostService {
 
     @Autowired
     private UserRepository userRepo;
+    @Autowired
+    private SurveyRepository surveyRepository;
 
     @Override
     @Transactional
@@ -228,4 +233,59 @@ public class RoommatePostServiceImpl implements RoommatePostService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
+@Override
+@Transactional(readOnly = true)
+public List<RoommatePostResponse> recommendRoommatePosts(String userEmail) {
+    SurveyAnswer survey = surveyRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new EntityNotFoundException("SurveyAnswer not found for email: " + userEmail));
+
+    Enums.Gender gender = survey.getGender();
+    if (gender == null) {
+        throw new IllegalArgumentException("SurveyAnswer must have gender set");
+    }
+
+    double userPrice = survey.getPrice() != null ? survey.getPrice() : 0;
+    double minPrice = Math.max(0, userPrice - 1_000_000);
+    double maxPrice = userPrice + 1_000_000;
+
+    // B1: Lấy toàn bộ bài đăng theo gender + price range
+    List<RoommatePost> initialPosts = postRepo.findByGenderAndPriceRange(gender, minPrice, maxPrice);
+
+    // B2: Lọc theo địa chỉ nếu có
+    String desiredAddress = survey.getLocation();
+    List<RoommatePost> filteredByAddress = initialPosts;
+
+    if (desiredAddress != null && !desiredAddress.trim().isEmpty()) {
+        String[] keywords = desiredAddress.split(",");
+        for (int i = 0; i < keywords.length; i++) {
+            keywords[i] = keywords[i].trim().toLowerCase();
+        }
+
+        filteredByAddress = initialPosts.stream()
+                .filter(post -> {
+                    if (post.getAddress() == null) return false;
+                    String addressLower = post.getAddress().toLowerCase();
+                    for (String keyword : keywords) {
+                        if (addressLower.contains(keyword)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+
+        // B3: Nếu lọc địa chỉ ra 0 kết quả → bỏ qua bước lọc địa chỉ
+        if (filteredByAddress.isEmpty()) {
+            filteredByAddress = initialPosts;
+        }
+    }
+
+    // B4: Map sang response
+    return filteredByAddress.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+
 }

@@ -30,6 +30,9 @@ public class RoommatePost {
     private double areaSquareMeters;
     private double monthlyRentPrice;
 
+    private Double latitude;
+    private Double longitude;
+
 
     // Lưu danh sách ảnh dưới dạng Base64 string
     @ElementCollection(fetch = FetchType.LAZY)
