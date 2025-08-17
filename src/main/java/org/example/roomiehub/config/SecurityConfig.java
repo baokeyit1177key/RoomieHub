@@ -124,7 +124,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
         "http://localhost:5173",
-        "https://roomiehub.onrender.com"   // thêm domain production ở đâya
+        "https://roomiehub.onrender.com",
+                "https://fe-roomiehub-production.up.railway.app"
     ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
