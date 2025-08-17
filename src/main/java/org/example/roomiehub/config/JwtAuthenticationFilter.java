@@ -142,7 +142,12 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
                 @Override
                 public void addCorsMappings(CorsRegistry registry) {
                     registry.addMapping("/**")
-                            .allowedOriginPatterns("http://localhost:8080", "https://roomiehub-production.up.railway.app" , "http://localhost:5173")
+                            .allowedOriginPatterns(
+                                    "http://localhost:8080",
+                                    "https://roomiehub-production.up.railway.app",
+                                    "http://localhost:5173",
+                                    "https://roomiehub.onrender.com"
+                            )
 
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
