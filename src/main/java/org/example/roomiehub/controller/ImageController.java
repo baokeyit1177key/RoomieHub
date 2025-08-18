@@ -1,34 +1,43 @@
 package org.example.roomiehub.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.example.roomiehub.model.ImageEntity;
-import org.example.roomiehub.service.impl.ImageService;
-import org.springframework.http.HttpHeaders;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Base64;
+
 @RestController
 @RequestMapping("/api/images")
-@RequiredArgsConstructor
 public class ImageController {
-    private final ImageService imageService;
 
- @PostMapping(value = "/upload", consumes = "multipart/form-data")
-public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) throws Exception {
-    ImageEntity saved = imageService.saveImage(file);
-    return ResponseEntity.ok("Image saved with ID: " + saved.getId());
-}
-    // Lấy ảnh
-    @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
-        ImageEntity image = imageService.getImage(id);
-        if (image == null) {
-            return ResponseEntity.notFound().build();
+    @Operation(
+            summary = "Upload multiple images and get Base64 strings",
+            description = "Nhận nhiều ảnh multipart/form-data và trả về Base64 (chuỗi thô, không JSON bao ngoài)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Upload thành công")
+            }
+    )
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadImages(
+            @Parameter(description = "Chọn nhiều file", required = true)
+            @RequestPart("files") MultipartFile[] files) {
+
+        StringBuilder sb = new StringBuilder();
+
+        for (MultipartFile file : files) {
+            try {
+                String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+                sb.append(base64).append("\n"); // mỗi ảnh 1 dòng
+            } catch (Exception e) {
+                return ResponseEntity.badRequest()
+                        .body("Failed to process file: " + file.getOriginalFilename());
+            }
         }
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, image.getContentType())
-                .body(image.getData());
+
+        return ResponseEntity.ok(sb.toString().trim());
     }
 }
