@@ -64,6 +64,7 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/apartments",
+                                "/api/apartments/**",
                                 "/api/apartments/count",
                                 "/api/apartment-recommendation",
                                 "/api/auth/**",
@@ -78,8 +79,8 @@ public class SecurityConfig {
                                 "/api/test-chatgpt",
                                 "/api/surveys",
                                 "/api/payment/receive-hook",
+                                "/api/roommate-posts/*",
                                 "/api/roommate-posts"
-
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
