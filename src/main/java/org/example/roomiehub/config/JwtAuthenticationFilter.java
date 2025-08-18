@@ -126,7 +126,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
                             ))
                     .servers(List.of(
                             new Server().url("https://roomiehub.onrender.com"),
-                            new Server().url("https://roomiehub-production.up.railway.app"),
+                            new Server().url("https://roomiehub-production-1bcb.up.railway.app"),
                             new Server().url("http://localhost:8080"),
                             new Server().url("http://localhost:5173")
                     ));

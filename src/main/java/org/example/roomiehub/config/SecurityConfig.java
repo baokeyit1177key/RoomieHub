@@ -125,7 +125,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
         "http://localhost:5173",
         "https://roomiehub.onrender.com",
-                "https://fe-roomiehub-production.up.railway.app"
+                "https://fe-roomiehub-production.up.railway.app",
+               "https://roomiehub-production-1bcb.up.railway.app"
     ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
