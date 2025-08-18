@@ -43,6 +43,8 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
             (path.equals("/api/apartments") ||
                     path.equals("/api/apartments/count") ||
                     path.equals("/api/apartments/create") ||
+                     path.startsWith("/api/apartments/") ||
+                    path.startsWith("/api/roommate-posts") ||
                     path.equals("/api/payment/receive-hook") ||
                      path.equals("/api/roommate-posts"))) {
         System.out.println(">>> [JwtFilter] Public GET path - skipping auth: " + path);
